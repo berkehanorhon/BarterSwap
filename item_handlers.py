@@ -52,6 +52,6 @@ def add_item():
         conn.commit()
         conn.close()
 
-        return redirect(url_for('home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
+        return redirect(url_for('home.home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
     else:
         return render_template('additem.html')

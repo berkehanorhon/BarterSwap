@@ -8,28 +8,35 @@ user_handlers = Blueprint('user_handlers', __name__ , static_folder='static', te
 
 @user_handlers.route('/signin' , methods=['GET','POST'])
 def signin():
+
+    if 'user_id' in session:
+        return redirect(url_for('home.home'))
+
     if request.method == 'POST':
-        print(22)
+
         username = request.form['username']
         password = request.form['password']
-        print(33)
+
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
         conn.close()
-        print(user)
-        if user and check_password_hash(user[2], password):  # Kullanıcı bulundu ve parola doğru
-            session['user_id'] = user[0]  # Oturum başlat
-            return redirect(url_for('home'))  # Ana sayfaya yönlendir
+        if user and check_password_hash(user[2], password):
+            flash('Successfully logged in!', 'Login Success')
+            session['user_id'] = user[0]
+            return redirect(url_for('home.home'))
         else:
             flash('Invalid email or password', 'signin-error')
-            return redirect(url_for('user_handlers.signin'))  # Giriş sayfasına geri yönlendir
+            return redirect(url_for('user_handlers.signin'))
     else:
         return render_template('signin.html')
 
 @user_handlers.route('/signup' , methods=['GET','POST'])
 def signup():
+    if 'user_id' in session:
+        return redirect(url_for('home.home'))
+
     # add extra code here
     # check is username or mail used before
     if request.method == 'POST':
@@ -52,4 +59,4 @@ def signup():
 @user_handlers.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('home'))
+    return redirect(url_for('home.home'))
