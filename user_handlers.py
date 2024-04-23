@@ -44,7 +44,12 @@ def signup():
         conn.commit()
         conn.close()
 
-        flash("You have successfully registered", "signup-success")
+        flash("You have successfully registered", "signup success")
         return redirect(url_for("user_handlers.signin"))
     else:
         return render_template('signup.html')
+
+@user_handlers.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
