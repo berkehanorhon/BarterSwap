@@ -20,14 +20,14 @@
             <div class="col-md-6 offset-md-3">
                 <div class="login-container">
                     <h2 class="text-center mb-4">Sign In</h2>
-                    <form>
+                    <form action="{{ url_for('user_handlers.signin') }}" method="post">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
-                            <input type="username" class="form-control" id="username" placeholder="Enter Username" required>
+                            <input type="username" class="form-control" id="username" name="username" placeholder="Enter Username" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" placeholder="Password" required>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="remember">
@@ -35,7 +35,7 @@
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mb-2">Sign In</button>
 
-                        <a href="{{ url_for('user.signup') }}" class="btn btn-primary w-100">Sign Up</a>
+                        <a href="{{ url_for('user_handlers.signup') }}" class="btn btn-primary w-100">Sign Up</a>
 
                     </form>
                     <div class="text-center mt-3">
