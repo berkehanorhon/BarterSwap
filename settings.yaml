@@ -1,8 +1,0 @@
-database:
-    host: ep-steep-fire-a20gi5io-pooler.eu-central-1.aws.neon.tech
-    port: 5432
-    name: barterswap
-    user: barterswap_owner
-    password: 2RYSosmajX5f
-jwt:
-    secret_key: "bizim-scret-key-bu"
