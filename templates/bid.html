@@ -1,0 +1,6 @@
+{% extends "item.html" %}
+{% block addbid %}{% endblock %}
+<form action="{{ url_for('item_handlers.bid_item', item_id=item[0]) }}" method="POST">
+    <input type="number" name="bid_amount" placeholder="Bid Amount">
+    <button type="submit">Place Bid</button>
+</form>

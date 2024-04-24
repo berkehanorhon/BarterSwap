@@ -1,5 +1,6 @@
 from flask import Flask, render_template,request,jsonify,redirect,url_for
 
+from bid_handlers import bid_handlers
 from home import home
 from user_handlers import user_handlers
 from item_handlers import item_handlers
@@ -13,6 +14,7 @@ app.secret_key = 'your_secret_key_here'
 app.register_blueprint(home_bp, url_prefix='/')
 app.register_blueprint(user_handlers,url_prefix='/user')
 app.register_blueprint(item_handlers,url_prefix='/items')
+app.register_blueprint(bid_handlers, url_prefix='/items/bid')
 
 
 
