@@ -1,0 +1,22 @@
+<!-- templates/item.html -->
+{% extends "base.html" %}
+{% block title %}{{ BarterSwap }}{% endblock %}
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h2 class="text-center mb-4">{{ item[2] }}</h2>
+                <div class="card">
+
+                    <div class="card-body">
+                        <h5 class="card-title">{{ item[2] }}</h5>
+                        <p class="card-text">{{ item[3] }}</p>
+                        <p class="card-text">Price: ${{ item[5] }}</p>
+                        <a href="#" class="btn btn-primary">Add to Cart</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

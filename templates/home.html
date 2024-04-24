@@ -1,21 +1,23 @@
-<!-- Bu bir yorum satırıdır.
 {% extends "base.html" %}
 {% block content %}
-    <div class="container mt-4">
-        <div class="row">
-            {% for item in items %}
-                <div class="col-md-4">
-                    <div class="card mb-4">
-                        <img src="{{ url_for('static', filename='default_item.jpg') }}" class="card-img-top" alt="{{ item.name }}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ item.name }}</h5>
-                            <p class="card-text">{{ item.description }}</p>
-                            <a href="{{ url_for('item_detail', id=item.id) }}" class="btn btn-primary">View Details</a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2 class="text-center mb-4">All Items</h2>
+            <ul class="list-group">
+                {% for item in items %}
+                    <li class="list-group-item">
+                        <h3>{{ item[2] }}</h3>
+                        <p>Description: {{ item[3] }}</p>
+                        <p>Price: ${{ item[5] }}</p>
+                        <button class="btn btn-primary" onclick="redirectToItem({{ item[0] }})">View Item</button>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
+    <script>
+        function redirectToItem(itemId) {
+            window.location.href = "/items/" + itemId;  // Belirli bir öğenin kendi sayfasına yönlendirme
+        }
+    </script>
 {% endblock %}
--->

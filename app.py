@@ -8,6 +8,7 @@ from home import home_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
+app.secret_key = 'your_secret_key_here'
 
 app.register_blueprint(home_bp, url_prefix='/')
 app.register_blueprint(user_handlers,url_prefix='/user')

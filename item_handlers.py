@@ -55,3 +55,14 @@ def add_item():
         return redirect(url_for('home.home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
     else:
         return render_template('additem.html')
+
+
+@item_handlers.route('/<int:item_id>')
+def get_item(item_id):
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
+    item = cursor.fetchone()
+    conn.close()
+
+    return render_template('item.html', item=item)
