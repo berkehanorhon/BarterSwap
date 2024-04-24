@@ -77,3 +77,21 @@ def signup():
 def logout():
     session.clear()
     return redirect(url_for('home.home'))
+
+@user_handlers.route('/profile')
+def profile():
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
+
+    user_id = session['user_id']
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
+    user = cursor.fetchone()
+    cursor.execute('SELECT * FROM items WHERE user_id = %s', (user_id,))
+    items = cursor.fetchall()
+    conn.close()
+
+    return render_template('profile.html', user=user, balance=session["balance"], items=items)
+
