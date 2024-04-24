@@ -1,8 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
+
+
+
     <div class="row">
+
+
         <div class="col-md-8 offset-md-2">
             <h2 class="text-center mb-4">All Items</h2>
+
+            <div class="mb-3">
+                <form action="{{ url_for('home.search', searchitem=query) }}" method="GET">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search..." name="query">
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+                </form>
+            </div>
+
+
             <ul class="list-group">
                 {% for item in items %}
                     <li class="list-group-item">
@@ -17,7 +33,7 @@
     </div>
     <script>
         function redirectToItem(itemId) {
-            window.location.href = "/items/" + itemId;  // Belirli bir öğenin kendi sayfasına yönlendirme
+            window.location.href = "/items/" + itemId;
         }
     </script>
 {% endblock %}

@@ -19,12 +19,20 @@ def signin():
 
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
+
         cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
+
+        cursor.execute('SELECT * FROM virtualcurrency WHERE user_id = %s', (user[0],))
+        virtualcurrency = cursor.fetchone()
+
         conn.close()
+
         if user and check_password_hash(user[2], password):
             flash('Successfully logged in!', 'Login Success')
             session['user_id'] = user[0]
+            session['username'] = user[1]
+            session['balance'] = virtualcurrency[1]
             return redirect(url_for('home.home'))
         else:
             flash('Invalid email or password', 'signin-error')
@@ -47,7 +55,16 @@ def signup():
         hashed_password = generate_password_hash(password)
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
+
+        # we can combine these two queries
         cursor.execute('INSERT INTO users (username, password,email) VALUES (%s, %s,%s)', (username, hashed_password, mail))
+        # add lock here
+        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        user = cursor.fetchone()
+
+        #Everyone who register will get 1000 virtual currency
+        cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 1000))
+
         conn.commit()
         conn.close()
 

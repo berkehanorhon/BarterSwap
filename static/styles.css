@@ -6,3 +6,20 @@
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+.footer {position: relative; margin-top: 20px;}
+.balance-btn{
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-left: 10px;
+}
+.balance-btn:hover{
+    background-color: #0056b3;
+}
+.balance-icon{
+    font-size: 20px;
+    margin-right: 5px;
+    color: #007bff;
+}
