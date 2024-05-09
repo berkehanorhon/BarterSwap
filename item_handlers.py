@@ -59,6 +59,7 @@ def add_item():
 
 @item_handlers.route('/<int:item_id>')
 def get_item(item_id):
+    # REWRITE WITH BIDS
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
