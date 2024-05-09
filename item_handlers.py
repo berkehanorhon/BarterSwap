@@ -1,7 +1,12 @@
 # routes.py
 from flask import Flask, render_template, request, redirect, url_for, Blueprint, flash, session
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
+import os.path
 import RunFirstSettings
+import uuid
+import mimetypes
+from PIL import Image
 
 item_handlers = Blueprint('item_handlers', __name__, static_folder='static', template_folder='templates')
 
@@ -24,31 +29,40 @@ def add_item():
         price = request.form['price']
         category = request.form['category']
         condition = request.form['condition']
-        #image = request.form['image']
+        try:  # TODO bu try except silinecek
+            image = request.files['image']
+            mimetype = mimetypes.guess_type(image.filename)[0]
+            if mimetype not in ['image/jpeg', 'image/png', 'image/jpg']:
+                return 'Invalid file type', 415
+            filename = secure_filename(image.filename)
+            random_filename = str(uuid.uuid4()) + os.path.splitext(filename)[1]
+            image_path = os.path.join('static/images', random_filename)
 
-        #if 'image' not in request.files:
-            #flash('No file part', 'error')
-        #    return redirect(request.url)
+            foo = Image.open(image)
+            foo = foo.resize((625, 700))
+            foo.save(image_path, optimize=True, quality=95)
 
-        #file = request.files['image']
-
-        #ADD FLASH FEATURE IN THE FUTURE
+            print(image, type(image), image_path, random_filename)
+        except Exception as e:
+            print(e, 12345)
+        # ADD FLASH FEATURE IN THE FUTURE
         if len(name) > 100:
-            #flash("Item name cannot exceed 100 characters", "error")
+            # flash("Item name cannot exceed 100 characters", "error")
             return redirect(url_for('user.add_item'))
 
         if len(description) > 500:
-            #flash("Description cannot exceed 500 characters", "error")
+            # flash("Description cannot exceed 500 characters", "error")
             return redirect(url_for('user.add_item'))
 
         if len(price) > 10:
-            #flash("Price value cannot exceed 10 characters", "error")
+            # flash("Price value cannot exceed 10 characters", "error")
             return redirect(url_for('user.add_item'))
         user_id = session['user_id']
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO items (user_id,title, description, category, starting_price,current_price, condition) VALUES (%s, %s, %s, %s, %s,%s,%s)',
-                       (user_id, name, description, category,price,price,condition))
+        cursor.execute(
+            'INSERT INTO items (user_id,title, description, category, starting_price,current_price, condition,image_url) VALUES (%s, %s, %s, %s, %s,%s,%s,%s)',
+            (user_id, name, description, category, price, price, condition, random_filename))
         conn.commit()
         conn.close()
 
@@ -90,12 +104,14 @@ def edit_item(item_id):
 
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE items SET title = %s, description = %s, category = %s, condition = %s WHERE item_id = %s',
-                       (name, description, category, condition, item_id))
+        cursor.execute(
+            'UPDATE items SET title = %s, description = %s, category = %s, condition = %s WHERE item_id = %s',
+            (name, description, category, condition, item_id))
         conn.commit()
         conn.close()
         item = []
-        return redirect(url_for('item.html', item = item))
+        return redirect(url_for('item.html', item=item))
+
 
 @item_handlers.route('/<int:item_id>/bid', methods=['POST'])
 def add_bid(item_id):
