@@ -66,3 +66,33 @@ def get_item(item_id):
     conn.close()
 
     return render_template('item.html', item=item)
+
+
+@item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
+def edit_item(item_id):
+    # NEED  update
+
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+
+    if request.method == 'POST':
+        # check item is owned by session user
+        user_id = request.form['user_id']
+        if user_id != session['user_id']:
+            flash("You can't edit this item", "error")
+            return redirect(url_for('home.home'))
+
+        name = request.form['name']
+        description = request.form['description']
+        category = request.form['category']
+        condition = request.form['condition']
+
+        conn = RunFirstSettings.create_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE items SET title = %s, description = %s, category = %s, condition = %s WHERE item_id = %s',
+                       (name, description, category, condition, item_id))
+        conn.commit()
+        conn.close()
+        item = []
+        return redirect(url_for('item.html', item = item))
+
