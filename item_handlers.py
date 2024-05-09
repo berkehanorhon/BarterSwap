@@ -96,3 +96,34 @@ def edit_item(item_id):
         item = []
         return redirect(url_for('item.html', item = item))
 
+@item_handlers.route('/<int:item_id>/bid', methods=['POST'])
+def add_bid(item_id):
+    # REWRITE
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
+
+    bid_amount = request.form['bid_amount']
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Check if the bid is higher than the current price
+    cursor.execute('SELECT current_price FROM items WHERE item_id = %s', (item_id,))
+    current_price = cursor.fetchone()[0]
+    if bid_amount <= current_price:
+        flash("Your bid must be higher than the current price", "error")
+        return redirect(url_for('item_handlers.get_item', item_id=item_id))
+
+    # Insert the new bid
+    cursor.execute('INSERT INTO bids (user_id, item_id, amount) VALUES (%s, %s, %s)',
+                   (session['user_id'], item_id, bid_amount))
+
+    # Update the current price of the item
+    cursor.execute('UPDATE items SET current_price = %s WHERE item_id = %s',
+                   (bid_amount, item_id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('item_handlers.get_item', item_id=item_id))
