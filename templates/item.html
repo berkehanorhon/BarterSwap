@@ -10,6 +10,7 @@
 
                     <div class="card-body">
                         <h5 class="card-title">{{ item[2] }}</h5>
+                        <img src="{{ url_for('static', filename='images/' + item[7].replace('\\', '/')) }}" alt="Image">
                         <p class="card-text">{{ item[3] }}</p>
                         <p class="card-text">Price: ${{ item[5] }}</p>
                         <a href="#" class="btn btn-primary">Add to Cart</a>
