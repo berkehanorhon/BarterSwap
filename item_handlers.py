@@ -7,6 +7,7 @@ import RunFirstSettings
 import uuid
 import mimetypes
 from PIL import Image
+import barterswap
 
 item_handlers = Blueprint('item_handlers', __name__, static_folder='static', template_folder='templates')
 
@@ -68,7 +69,7 @@ def add_item():
 
         return redirect(url_for('home.home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
     else:
-        return render_template('additem.html')
+        return render_template('additem.html', max_content_length=barterswap.max_content_length)
 
 
 @item_handlers.route('/<int:item_id>')

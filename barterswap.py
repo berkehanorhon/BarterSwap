@@ -1,0 +1,1 @@
+max_content_length = 5 * 1024 * 1024

@@ -6,10 +6,11 @@ from user_handlers import user_handlers
 from item_handlers import item_handlers
 from home import home_bp
 from errorhandler import error_bp
+import barterswap
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
-app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # 4 MB
+app.config['MAX_CONTENT_LENGTH'] = barterswap.max_content_length
 app.secret_key = 'your_secret_key_here'
 
 app.register_blueprint(error_bp)

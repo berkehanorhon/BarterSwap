@@ -32,7 +32,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="image" class="form-label">Image</label>
-                        <input type="file" class="form-control" id="image" name="image" accept="image/jpeg,image/png,image/jpg" required>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/jpeg,image/png,image/jpg" required onchange="checkFileSize(this)">
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Add Item</button>
@@ -40,4 +40,14 @@
             </div>
         </div>
     </div>
+    <script>
+    function checkFileSize(input) {
+        var file = input.files[0];
+
+        if(file.size > {{ max_content_length }}) {
+            alert("Dosya boyutu " + ({{ max_content_length // (1024*1024) }}) + "MB'dan büyük olamaz.");
+            input.value = '';
+        }
+    }
+    </script>
 {% endblock %}

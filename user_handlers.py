@@ -4,11 +4,11 @@ import yaml
 from werkzeug.security import generate_password_hash, check_password_hash
 import RunFirstSettings
 
-user_handlers = Blueprint('user_handlers', __name__ , static_folder='static', template_folder='templates')
+user_handlers = Blueprint('user_handlers', __name__, static_folder='static', template_folder='templates')
 
-@user_handlers.route('/signin' , methods=['GET','POST'])
+
+@user_handlers.route('/signin', methods=['GET', 'POST'])
 def signin():
-
     if 'user_id' in session:
         return redirect(url_for('home.home'))
 
@@ -40,7 +40,8 @@ def signin():
     else:
         return render_template('signin.html')
 
-@user_handlers.route('/signup' , methods=['GET','POST'])
+
+@user_handlers.route('/signup', methods=['GET', 'POST'])
 def signup():
     if 'user_id' in session:
         return redirect(url_for('home.home'))
@@ -57,12 +58,14 @@ def signup():
         cursor = conn.cursor()
 
         # we can combine these two queries
-        cursor.execute('INSERT INTO users (username, password,email) VALUES (%s, %s,%s)', (username, hashed_password, mail))
+        cursor.execute('INSERT INTO users (username, password,email) VALUES (%s, %s,%s)',
+                       (username, hashed_password, mail))
         # add lock here
         cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
 
-        #Everyone who register will get 1000 virtual currency
+        # Everyone who register will get 1000 virtual currency
+        # TODO we need to check constraints including UNIQUE constraint
         cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 1000))
 
         conn.commit()
@@ -73,10 +76,12 @@ def signup():
     else:
         return render_template('signup.html')
 
+
 @user_handlers.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home.home'))
+
 
 @user_handlers.route('/profile')
 def profile():
@@ -94,4 +99,3 @@ def profile():
     conn.close()
 
     return render_template('profile.html', user=user, balance=session["balance"], items=items)
-
