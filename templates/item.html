@@ -12,13 +12,30 @@
                         <h5 class="card-title">{{ item[2] }}</h5>
                         <img src="{{ url_for('static', filename='images/' + (item[7] if item[7] else 'default.png')) }}" alt="Image">
                         <p class="card-text">{{ item[3] }}</p>
-                        <p class="card-text">Price: ${{ item[5] }}</p>
-                        <a href="#" class="btn btn-primary">Add to Cart</a>
+                        <p class="card-text">Starting Price: ${{ item[5] }}</p>
+                        <p class="card-text">Highest Bid: ${{ item[6] }}</p>
+                        <p class="card-text">Last Bids</p>
+                        <ul class="list-group">
+                            {% for bid in bids %}
+                                <li class="list-group-item">
+
+                                    <p>User: {{ bid[4]}}</p>
+                                    <p>Price: ${{ bid[3] }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <form action="{{ url_for('bid_handlers.add_bid', item_id=item[0]) }}" method="post">
+                            <div class="form-group">
+                                <label for="bid_amount">Your Bid:</label>
+                                <input type="number" class="form-control" id="bid_amount" name="bid_amount" min="{{ item[6] + 1 }}" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Place Bid</button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-        {% block addbid %}{% endblock %}
+
     </div>
 
 {% endblock %}
