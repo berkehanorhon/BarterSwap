@@ -79,7 +79,19 @@ def get_item(item_id):
     item = list(cursor.fetchone())
     conn.close()
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
-    return render_template('item.html', item=tuple(item))
+    cursor.execute('''
+        SELECT bids.*, users.username 
+        FROM bids 
+        INNER JOIN users ON bids.user_id = users.user_id 
+        WHERE bids.item_id = %s 
+        ORDER BY bids.bid_amount DESC 
+        LIMIT 3
+    ''', (item_id,))
+    bids = cursor.fetchall()
+    print(bids)
+    conn.close()
+
+    return render_template('item.html', item=tuple(item),bids=bids)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
@@ -106,40 +118,10 @@ def edit_item(item_id):
         cursor.execute(
             'UPDATE items SET title = %s, description = %s, category = %s, condition = %s WHERE item_id = %s',
             (name, description, category, condition, item_id))
+
         conn.commit()
         conn.close()
         item = ()
         return redirect(url_for('item.html', item=item))
 
 
-@item_handlers.route('/<int:item_id>/bid', methods=['POST'])
-def add_bid(item_id):
-    # REWRITE
-    if 'user_id' not in session:
-        flash("You need to sign in first", "error")
-        return redirect(url_for('user_handlers.signin'))
-
-    bid_amount = request.form['bid_amount']
-
-    conn = RunFirstSettings.create_connection()
-    cursor = conn.cursor()
-
-    # Check if the bid is higher than the current price
-    cursor.execute('SELECT current_price FROM items WHERE item_id = %s', (item_id,))
-    current_price = cursor.fetchone()[0]
-    if bid_amount <= current_price:
-        flash("Your bid must be higher than the current price", "error")
-        return redirect(url_for('item_handlers.get_item', item_id=item_id))
-
-    # Insert the new bid
-    cursor.execute('INSERT INTO bids (user_id, item_id, amount) VALUES (%s, %s, %s)',
-                   (session['user_id'], item_id, bid_amount))
-
-    # Update the current price of the item
-    cursor.execute('UPDATE items SET current_price = %s WHERE item_id = %s',
-                   (bid_amount, item_id))
-
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for('item_handlers.get_item', item_id=item_id))

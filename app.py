@@ -20,6 +20,5 @@ app.register_blueprint(item_handlers,url_prefix='/items')
 app.register_blueprint(bid_handlers, url_prefix='/items/bid')
 
 
-
 if __name__ == '__main__':
     app.run(debug=True)

@@ -6,6 +6,16 @@ import RunFirstSettings
 
 user_handlers = Blueprint('user_handlers', __name__, static_folder='static', template_folder='templates')
 
+@user_handlers.app_context_processor
+def inject_user_balance():
+    if 'user_id' in session:
+        conn = RunFirstSettings.create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (session['user_id'],))
+        balance = cursor.fetchone()[0]
+        conn.close()
+        return dict(user_balance=balance)
+    return dict(user_balance=0)
 
 @user_handlers.route('/signin', methods=['GET', 'POST'])
 def signin():
