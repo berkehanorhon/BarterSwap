@@ -123,4 +123,13 @@ def edit_item(item_id):
         item = ()
         return redirect(url_for('item.html', item=item))
 
+@item_handlers.route('/category/<string:category>')
+def get_items_by_category(category):
+    # REWRITE
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM items WHERE category = %s', (category,))
+    items = cursor.fetchall()
+    conn.close()
 
+    return render_template('items_by_category.html', items=items)
