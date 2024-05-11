@@ -77,7 +77,6 @@ def get_item(item_id):
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
     item = list(cursor.fetchone())
-    conn.close()
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
     cursor.execute('''
         SELECT bids.*, users.username 
