@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="text-center">404</h1>
+                <h3 class="text-center">Sayfa Bulunamadı</h3>
+                <p class="text-center">Üzgünüz, aradığınız sayfa bulunamadı. Ana sayfaya dönmek için <a href="{{ url_for('home.home') }}">tıklayınız</a>.</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
