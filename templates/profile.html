@@ -6,9 +6,16 @@
             <div class="col-md-8 offset-md-2">
                 <h2 class="text-center mb-4">Profile Page</h2>
                 <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Username: {{ user[1] }}</h5>
-                        <p class="card-text">Email: {{ user[3] }}</p>
+                    <div class="row no-gutters">
+                        <div class="col-md-4"> <!-- TODO resim boyut ayarlamasını otomatikten manuele alıcaz -->
+                            <img src="{{ url_for('static', filename='avatars/' + ('default.png')) }}" class="card-img" alt="Image" style="width: 100%; height: auto;">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">Username: {{ user[1] }}</h5>
+                                <p class="card-text">Email: {{ user[3] }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <h3 class="text-center mt-4">My Items</h3>

@@ -11,12 +11,6 @@ import barterswap
 
 item_handlers = Blueprint('item_handlers', __name__, static_folder='static', template_folder='templates')
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @item_handlers.route('/add', methods=['GET', 'POST'])
 def add_item():
@@ -30,10 +24,13 @@ def add_item():
         price = request.form['price']
         category = request.form['category']
         condition = request.form['condition']
+        random_filename = None
         try:  # TODO bu try except silinecek
             image = request.files['image']
+            if not image:
+                raise Exception("No image uploaded!")
             mimetype = mimetypes.guess_type(image.filename)[0]
-            if mimetype not in ['image/jpeg', 'image/png', 'image/jpg']:
+            if mimetype not in barterswap.ALLOWED_ADDITEM_IMAGE_TYPES:
                 return 'Invalid file type', 415
             filename = secure_filename(image.filename)
             random_filename = str(uuid.uuid4()) + os.path.splitext(filename)[1]
@@ -69,7 +66,8 @@ def add_item():
 
         return redirect(url_for('home.home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
     else:
-        return render_template('additem.html', max_content_length=barterswap.max_content_length)
+        return render_template('additem.html', max_content_length=barterswap.max_content_length,
+                               ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
 
 
 @item_handlers.route('/<int:item_id>')
@@ -78,10 +76,10 @@ def get_item(item_id):
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
-    item = cursor.fetchone()
+    item = list(cursor.fetchone())
     conn.close()
-
-    return render_template('item.html', item=item)
+    item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
+    return render_template('item.html', item=tuple(item))
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
@@ -110,7 +108,7 @@ def edit_item(item_id):
             (name, description, category, condition, item_id))
         conn.commit()
         conn.close()
-        item = []
+        item = ()
         return redirect(url_for('item.html', item=item))
 
 

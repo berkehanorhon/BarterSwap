@@ -32,7 +32,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="image" class="form-label">Image</label>
-                        <input type="file" class="form-control" id="image" name="image" accept="image/jpeg,image/png,image/jpg" required onchange="checkFileSize(this)">
+                        <input type="file" class="form-control" id="image" name="image" accept="{{ ",".join(ALLOWED_IMAGE_TYPES) }}" onchange="checkFileSize(this)">
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Add Item</button>
