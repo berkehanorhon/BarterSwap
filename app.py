@@ -19,6 +19,9 @@ app.register_blueprint(user_handlers,url_prefix='/user')
 app.register_blueprint(item_handlers,url_prefix='/items')
 app.register_blueprint(bid_handlers, url_prefix='/items/bid')
 
+@app.route('/<path:path>')
+def catch_all(path):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

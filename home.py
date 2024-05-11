@@ -18,6 +18,9 @@ def home(page):
     total_items = cursor.fetchone()[0]
     total_pages = math.ceil(total_items / per_page)
 
+    if page <= 0 or page > total_pages:
+        return render_template('404.html')
+
     cursor.execute('SELECT * FROM items ORDER BY item_id LIMIT %s OFFSET %s', (per_page, offset))
     items = cursor.fetchall()
     conn.close()
