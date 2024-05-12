@@ -90,7 +90,7 @@ def get_item(item_id):
     print(bids)
     conn.close()
 
-    return render_template('item.html', item=tuple(item),bids=bids)
+    return render_template('item.html', item=tuple(item), bids=bids)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
@@ -101,26 +101,39 @@ def edit_item(item_id):
         flash("You need to sign in first", "error")
 
     if request.method == 'POST':
+        print(request.form)
+        # if 1:
+        #     return render_template('404.html')
         # check item is owned by session user
-        user_id = request.form['user_id']
-        if user_id != session['user_id']:
-            flash("You can't edit this item", "error")
-            return redirect(url_for('home.home'))
-
-        name = request.form['name']
-        description = request.form['description']
-        category = request.form['category']
-        condition = request.form['condition']
-
+        user_id = session['user_id']
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
+        cursor.execute('SELECT 1 FROM items WHERE item_id = %s and user_id = %s', (item_id, user_id))
+        z = cursor.fetchone()
+        print(z)
+        if not z:
+            #flash("You do not have access to edit this item!", "error")
+            return redirect(url_for('home.home'))
+        # TODO image editing will be added
+        name = request.form['name']
+        description = request.form['description']
+        #category = request.form['category']
+        #condition = request.form['condition']
+
         cursor.execute(
-            'UPDATE items SET title = %s, description = %s, category = %s, condition = %s WHERE item_id = %s',
-            (name, description, category, condition, item_id))
+            'UPDATE items SET title = %s, description = %s WHERE item_id = %s',
+            (name, description, item_id))
 
         conn.commit()
         conn.close()
-        item = ()
-        return redirect(url_for('item.html', item=item))
-
-
+        return redirect(url_for('item_handlers.get_item',item_id=item_id))
+    elif request.method == 'GET':
+        # REWRITE WITH BIDS
+        conn = RunFirstSettings.create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
+        item = list(cursor.fetchone())
+        item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
+        conn.close()
+        return render_template('edititem.html', item=item, max_content_length=barterswap.max_content_length,
+                               ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)

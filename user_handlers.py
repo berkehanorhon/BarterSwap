@@ -3,8 +3,16 @@ import psycopg2
 import yaml
 from werkzeug.security import generate_password_hash, check_password_hash
 import RunFirstSettings
+import re
+import barterswap
+import mimetypes
+import os.path
+from PIL import Image
+from werkzeug.utils import secure_filename
+import uuid
 
 user_handlers = Blueprint('user_handlers', __name__, static_folder='static', template_folder='templates')
+
 
 @user_handlers.app_context_processor
 def inject_user_balance():
@@ -16,6 +24,7 @@ def inject_user_balance():
         conn.close()
         return dict(user_balance=balance)
     return dict(user_balance=0)
+
 
 @user_handlers.route('/signin', methods=['GET', 'POST'])
 def signin():
@@ -98,14 +107,93 @@ def profile():
     if 'user_id' not in session:
         flash("You need to sign in first", "error")
         return redirect(url_for('user_handlers.signin'))
+    username = session['username']
+    return redirect(url_for('user_handlers.user_profile', username=username))
 
-    user_id = session['user_id']
+
+@user_handlers.route('/profile/<username>')
+def user_profile(username):
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
+    if not re.match('^[a-zA-Z0-9_]*$', username):
+        return render_template('404.html')
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
     user = cursor.fetchone()
-    cursor.execute('SELECT * FROM items WHERE user_id = %s', (user_id,))
+    if not user:
+        return render_template('404.html')
+    cursor.execute('SELECT * FROM items WHERE user_id = %s', (user[0],))
     items = cursor.fetchall()
     conn.close()
 
-    return render_template('profile.html', user=user, balance=session["balance"], items=items)
+    return render_template('profile.html', user=user, items=items)
+
+
+@user_handlers.route('/profile/<username>/edit', methods=['GET', 'POST'])
+def user_profile_edit(username):
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
+    if username != session['username']:
+        return render_template('404.html')
+    if request.method == 'POST':
+        print(request.form)
+        new_username = request.form['username']
+        email = request.form['email']
+        conn = RunFirstSettings.create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT 1 FROM users WHERE username = %s', (username,))
+        user = cursor.fetchone()
+        cursor.execute('SELECT 1 FROM users WHERE username = %s', (new_username,))
+        new_user_exists = cursor.fetchone()
+        if not user or (new_user_exists and new_username != username):
+            return render_template('404.html')
+        print('is_new_image' in request.form and request.form['is_new_image'] == 'on')
+        if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
+            try:  # TODO bu try except silinecek
+                image = request.files['image']
+                if not image:
+                    raise Exception("No image uploaded!")
+                mimetype = mimetypes.guess_type(image.filename)[0]
+                if mimetype not in barterswap.ALLOWED_ADDITEM_IMAGE_TYPES:
+                    return 'Invalid file type', 415
+                filename = secure_filename(image.filename)
+                random_filename = str(uuid.uuid4()) + os.path.splitext(filename)[1]
+                image_path = os.path.join('static/avatars', random_filename)
+
+                foo = Image.open(image)
+                foo = foo.resize((625, 700))
+                foo.save(image_path, optimize=True, quality=95)
+
+                print(image, type(image), image_path, random_filename)
+                cursor.execute(
+                    'UPDATE users SET username = %s, email = %s, avatar_url = %s WHERE username = %s',
+                    (new_username, email, random_filename, username))
+                conn.commit()
+            except Exception as e:
+                print(e, 54321)
+        else:
+            cursor.execute(
+                'UPDATE users SET username = %s, email = %s WHERE username = %s',
+                (new_username, email, username))
+            conn.commit()
+        conn.close()
+        session['username'] = new_username
+        print("profile updated!")
+        return redirect(url_for('user_handlers.user_profile', username=new_username))
+
+    elif request.method == 'GET':
+        if not re.match('^[a-zA-Z0-9_]*$', username):
+            return render_template('404.html')
+        conn = RunFirstSettings.create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        user = cursor.fetchone()
+        if not user:
+            return render_template('404.html')
+        conn.close()
+
+        return render_template('editprofile.html', user=user, max_content_length=barterswap.max_content_length,
+                               ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES, username=username)
