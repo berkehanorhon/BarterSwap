@@ -64,6 +64,8 @@ def get_item(item_id):
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
     item = list(cursor.fetchone())
+    cursor.execute('SELECT username FROM users WHERE user_id = %s', (item[1],))
+    seller = cursor.fetchone()[0]
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
     cursor.execute('''
         SELECT bids.*, users.username 
@@ -74,10 +76,10 @@ def get_item(item_id):
         LIMIT 3
     ''', (item_id,))
     bids = cursor.fetchall()
-    print(bids)
+
     conn.close()
 
-    return render_template('item.html', item=tuple(item), bids=bids)
+    return render_template('item.html', item=tuple(item), bids=bids , seller = seller)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])

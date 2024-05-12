@@ -7,6 +7,10 @@ message_routes = Blueprint('message_routes', __name__, static_folder='static', t
 
 @message_routes.route('/<username>', methods=['GET', 'POST'])
 def get_user_messages(username):
+
+    if username == session['username']:
+        return redirect(url_for('home.home'))
+
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT user_id FROM Users WHERE username = %s', (username,))
