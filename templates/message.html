@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% block title %}Chat{% endblock %}
 {% block content %}
     <style>
         .message-container {
@@ -50,7 +50,7 @@
             margin-top: 20px;
         }
         textarea {
-            width: 70%;
+            width: 100%;
             height: 100px;
             padding: 10px;
             border-radius: 5px;
@@ -73,18 +73,19 @@
 
 
     </style>
-    <h1>{{ username }}</h1>
     <div class="message-container">
+        <h1>{{ username }}</h1>
         {% for message in messages %}
             <div class="message {{ 'user' if message[1] == session["user_id"] else 'other' }}">
                 <span class="sender">{{ message[1] }}</span>
                 <span class="content">{{ message[3] }}</span>
-                <span class="timestamp">{{ message[4].strftime('%H:%M:%S') }}</span>
+                <span class="timestamp">{{ message[4].strftime('%H:%M') }}</span>
             </div>
         {% endfor %}
+        <form method="POST">
+            <textarea name="message" required></textarea>
+            <input type="submit" value="Send Message">
+        </form>
     </div>
-    <form method="POST">
-        <textarea name="message" required></textarea>
-        <input type="submit" value="Send Message">
-    </form>
+
 {% endblock %}
