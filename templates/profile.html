@@ -8,7 +8,7 @@
                 <div class="card">
                     <div class="row no-gutters">
                         <div class="col-md-4"> <!-- TODO resim boyut ayarlamasını otomatikten manuele alıcaz -->
-                            <img src="{{ url_for('static', filename='avatars/' + ('default.png')) }}" class="card-img" alt="Image" style="width: 100%; height: auto;">
+                            <img src="{{ url_for('static', filename='avatars/' + (user[6] if user[6] else 'default.png')) }}" class="card-img" alt="Image" style="width: 100%; height: auto;">
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">

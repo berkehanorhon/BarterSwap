@@ -26,35 +26,22 @@ def add_item():
         condition = request.form['condition']
         random_filename = None
         try:  # TODO bu try except silinecek
-            image = request.files['image']
-            if not image:
-                raise Exception("No image uploaded!")
-            mimetype = mimetypes.guess_type(image.filename)[0]
-            if mimetype not in barterswap.ALLOWED_ADDITEM_IMAGE_TYPES:
-                return 'Invalid file type', 415
-            filename = secure_filename(image.filename)
-            random_filename = str(uuid.uuid4()) + os.path.splitext(filename)[1]
-            image_path = os.path.join('static/images', random_filename)
-
-            foo = Image.open(image)
-            foo = foo.resize((625, 700))
-            foo.save(image_path, optimize=True, quality=95)
-
-            print(image, type(image), image_path, random_filename)
+            random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                              barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
         except Exception as e:
             print(e, 12345)
         # ADD FLASH FEATURE IN THE FUTURE
         if len(name) > 100:
             # flash("Item name cannot exceed 100 characters", "error")
-            return redirect(url_for('user.add_item'))
+            return redirect(url_for('item_handlers.add_item'))
 
         if len(description) > 500:
             # flash("Description cannot exceed 500 characters", "error")
-            return redirect(url_for('user.add_item'))
+            return redirect(url_for('item_handlers.add_item'))
 
         if len(price) > 10:
             # flash("Price value cannot exceed 10 characters", "error")
-            return redirect(url_for('user.add_item'))
+            return redirect(url_for('item_handlers.add_item'))
         user_id = session['user_id']
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
@@ -90,7 +77,7 @@ def get_item(item_id):
     print(bids)
     conn.close()
 
-    return render_template('item.html', item=tuple(item),bids=bids)
+    return render_template('item.html', item=tuple(item), bids=bids)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
@@ -101,26 +88,48 @@ def edit_item(item_id):
         flash("You need to sign in first", "error")
 
     if request.method == 'POST':
+        print(request.form)
+        # if 1:
+        #     return render_template('404.html')
         # check item is owned by session user
-        user_id = request.form['user_id']
-        if user_id != session['user_id']:
-            flash("You can't edit this item", "error")
-            return redirect(url_for('home.home'))
-
-        name = request.form['name']
-        description = request.form['description']
-        category = request.form['category']
-        condition = request.form['condition']
-
+        user_id = session['user_id']
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            'UPDATE items SET title = %s, description = %s, category = %s, condition = %s WHERE item_id = %s',
-            (name, description, category, condition, item_id))
-
-        conn.commit()
+        cursor.execute('SELECT 1 FROM items WHERE item_id = %s and user_id = %s', (item_id, user_id))
+        z = cursor.fetchone()
+        print(z)
+        if not z:
+            # flash("You do not have access to edit this item!", "error")
+            return redirect(url_for('home.home'))
+        # TODO image editing will be added
+        name = request.form['name']
+        description = request.form['description']
+        # category = request.form['category']
+        # condition = request.form['condition']
+        if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
+            try:  # TODO bu try except silinecek
+                random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                                  barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
+                cursor.execute(
+                    'UPDATE items SET title = %s, description = %s, image_url = %s WHERE item_id = %s',
+                    (name, description, random_filename, item_id))
+                conn.commit()
+            except Exception as e:
+                print(e, 54321)
+        else:
+            cursor.execute(
+                'UPDATE items SET title = %s, description = %s WHERE item_id = %s',
+                (name, description, item_id))
+            conn.commit()
         conn.close()
-        item = ()
-        return redirect(url_for('item.html', item=item))
-
-
+        return redirect(url_for('item_handlers.get_item', item_id=item_id))
+    elif request.method == 'GET':
+        # REWRITE WITH BIDS
+        conn = RunFirstSettings.create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
+        item = list(cursor.fetchone())
+        item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
+        conn.close()
+        return render_template('edititem.html', item=item, max_content_length=barterswap.max_content_length,
+                               ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)

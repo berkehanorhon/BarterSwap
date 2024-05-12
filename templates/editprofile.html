@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Profile Page{% endblock %}
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h2 class="text-center mb-4">Profile Page</h2>
+                <form action="{{ url_for('user_handlers.user_profile_edit', username=username) }}" method="post" enctype="multipart/form-data">
+                    <div class="card">
+                        <div class="row no-gutters">
+                            <div class="col-md-4">
+                                <img src="{{ url_for('static', filename='avatars/' + (user[6] if user[6] else 'default.png')) }}" class="card-img" alt="Image" style="width: 100%; height: auto;">
+                                <input type="checkbox" id="is_new_image" name="is_new_image" class="form-checkbox" disabled>
+                                <label for="is_new_image" class="form-label">Change Avatar to Selected Image</label>
+                                <input type="file" class="form-control" id="image" name="image" accept="{{ ",".join(ALLOWED_IMAGE_TYPES) }}" onchange="checkFileSizeAndCheckbox(this)">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="Current Username: {{ user[1] }}" required>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Current Email: {{ user[3] }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+    function checkFileSizeAndCheckbox(input) {
+    var file = input.files[0];
+
+    if(file.size > {{ max_content_length }}) {
+        alert("Dosya boyutu " + ({{ max_content_length // (1024*1024) }}) + "MB'dan büyük olamaz.");
+        input.value = '';
+    } else {
+        document.getElementById('is_new_image').disabled = false;
+    }
+    }
+    </script>
+{% endblock %}

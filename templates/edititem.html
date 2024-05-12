@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ BarterSwap }}{% endblock %}
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <form action="{{ url_for('item_handlers.edit_item', item_id=item[0]) }}" method="post" enctype="multipart/form-data">
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Current Title: {{ item[2] }}" required>
+                    <div class="card">
+                        <div class="card-body">
+                            <img src="{{ url_for('static', filename='images/' + (item[7] if item[7] else 'default.png')) }}" alt="Image" style="display: block;">
+                            <input type="checkbox" id="is_new_image" name="is_new_image" class="form-checkbox" disabled>
+                            <label for="is_new_image" class="form-label">Change Image to Selected Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="{{ ",".join(ALLOWED_IMAGE_TYPES) }}" onchange="checkFileSizeAndCheckbox(this)">
+                            <textarea class="form-control" id="description" name="description" placeholder="Current Description: {{ item[3] }}" rows="3" required style="width: 100%; height: 150px; resize: none;"></textarea>
+                            <p class="card-text">Starting Price: ${{ item[5] }}</p>
+                            <p class="card-text">Highest Bid: ${{ item[6] }}</p>
+                            <p class="card-text">Last Bids</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4">Tamamla</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+    function checkFileSizeAndCheckbox(input) {
+    var file = input.files[0];
+
+    if(file.size > {{ max_content_length }}) {
+        alert("Dosya boyutu " + ({{ max_content_length // (1024*1024) }}) + "MB'dan büyük olamaz.");
+        input.value = '';
+    } else {
+        document.getElementById('is_new_image').disabled = false;
+    }
+    }
+    </script>
+{% endblock %}
