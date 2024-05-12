@@ -33,15 +33,15 @@ def add_item():
         # ADD FLASH FEATURE IN THE FUTURE
         if len(name) > 100:
             # flash("Item name cannot exceed 100 characters", "error")
-            return redirect(url_for('user.add_item'))
+            return redirect(url_for('item_handlers.add_item'))
 
         if len(description) > 500:
             # flash("Description cannot exceed 500 characters", "error")
-            return redirect(url_for('user.add_item'))
+            return redirect(url_for('item_handlers.add_item'))
 
         if len(price) > 10:
             # flash("Price value cannot exceed 10 characters", "error")
-            return redirect(url_for('user.add_item'))
+            return redirect(url_for('item_handlers.add_item'))
         user_id = session['user_id']
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
@@ -106,12 +106,21 @@ def edit_item(item_id):
         description = request.form['description']
         # category = request.form['category']
         # condition = request.form['condition']
-
-        cursor.execute(
-            'UPDATE items SET title = %s, description = %s WHERE item_id = %s',
-            (name, description, item_id))
-
-        conn.commit()
+        if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
+            try:  # TODO bu try except silinecek
+                random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                                  barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
+                cursor.execute(
+                    'UPDATE items SET title = %s, description = %s, image_url = %s WHERE item_id = %s',
+                    (name, description, random_filename, item_id))
+                conn.commit()
+            except Exception as e:
+                print(e, 54321)
+        else:
+            cursor.execute(
+                'UPDATE items SET title = %s, description = %s WHERE item_id = %s',
+                (name, description, item_id))
+            conn.commit()
         conn.close()
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
     elif request.method == 'GET':
