@@ -77,7 +77,6 @@
         <h1>{{ username }}</h1>
         {% for message in messages %}
             <div class="message {{ 'user' if message[1] == session["user_id"] else 'other' }}">
-                <span class="sender">{{ message[1] }}</span>
                 <span class="content">{{ message[3] }}</span>
                 <span class="timestamp">{{ message[4].strftime('%H:%M') }}</span>
             </div>
