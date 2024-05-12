@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            margin: auto;
+            flex-wrap: wrap;  /* Allow the items to wrap to the next line */
+
+        }
+        .message {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            display: flex;
+            align-items: center;
+            max-width: 600px;  /* Limit the maximum width of the messages */
+            height: auto;  /* Make the div expand vertically as needed */
+            word-wrap: break-word;  /* Break the word at the end of the line */
+            white-space: normal;  /* Allow long text to wrap to the next line */
+            overflow: visible;
+        }
+        .sender {
+            font-weight: bold;
+            color: #333;
+        }
+        .content {
+            margin-left: 10px;
+            color: #666;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #999;
+            align-self: flex-end;
+        }
+        .message.user {
+            justify-content: flex-end;  /* User's messages are right-aligned */
+        }
+        .message.other {
+            justify-content: flex-start;  /* Other's messages are left-aligned */
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        textarea {
+            width: 70%;
+            height: 100px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+
+    </style>
+    <h1>{{ username }}</h1>
+    <div class="message-container">
+        {% for message in messages %}
+            <div class="message {{ 'user' if message[1] == session["user_id"] else 'other' }}">
+                <span class="sender">{{ message[1] }}</span>
+                <span class="content">{{ message[3] }}</span>
+                <span class="timestamp">{{ message[4].strftime('%H:%M:%S') }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    <form method="POST">
+        <textarea name="message" required></textarea>
+        <input type="submit" value="Send Message">
+    </form>
+{% endblock %}
