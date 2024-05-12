@@ -26,21 +26,8 @@ def add_item():
         condition = request.form['condition']
         random_filename = None
         try:  # TODO bu try except silinecek
-            image = request.files['image']
-            if not image:
-                raise Exception("No image uploaded!")
-            mimetype = mimetypes.guess_type(image.filename)[0]
-            if mimetype not in barterswap.ALLOWED_ADDITEM_IMAGE_TYPES:
-                return 'Invalid file type', 415
-            filename = secure_filename(image.filename)
-            random_filename = str(uuid.uuid4()) + os.path.splitext(filename)[1]
-            image_path = os.path.join('static/images', random_filename)
-
-            foo = Image.open(image)
-            foo = foo.resize((625, 700))
-            foo.save(image_path, optimize=True, quality=95)
-
-            print(image, type(image), image_path, random_filename)
+            random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                              barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
         except Exception as e:
             print(e, 12345)
         # ADD FLASH FEATURE IN THE FUTURE
@@ -112,13 +99,13 @@ def edit_item(item_id):
         z = cursor.fetchone()
         print(z)
         if not z:
-            #flash("You do not have access to edit this item!", "error")
+            # flash("You do not have access to edit this item!", "error")
             return redirect(url_for('home.home'))
         # TODO image editing will be added
         name = request.form['name']
         description = request.form['description']
-        #category = request.form['category']
-        #condition = request.form['condition']
+        # category = request.form['category']
+        # condition = request.form['condition']
 
         cursor.execute(
             'UPDATE items SET title = %s, description = %s WHERE item_id = %s',
@@ -126,7 +113,7 @@ def edit_item(item_id):
 
         conn.commit()
         conn.close()
-        return redirect(url_for('item_handlers.get_item',item_id=item_id))
+        return redirect(url_for('item_handlers.get_item', item_id=item_id))
     elif request.method == 'GET':
         # REWRITE WITH BIDS
         conn = RunFirstSettings.create_connection()

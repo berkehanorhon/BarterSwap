@@ -153,21 +153,8 @@ def user_profile_edit(username):
         print('is_new_image' in request.form and request.form['is_new_image'] == 'on')
         if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
             try:  # TODO bu try except silinecek
-                image = request.files['image']
-                if not image:
-                    raise Exception("No image uploaded!")
-                mimetype = mimetypes.guess_type(image.filename)[0]
-                if mimetype not in barterswap.ALLOWED_ADDITEM_IMAGE_TYPES:
-                    return 'Invalid file type', 415
-                filename = secure_filename(image.filename)
-                random_filename = str(uuid.uuid4()) + os.path.splitext(filename)[1]
-                image_path = os.path.join('static/avatars', random_filename)
-
-                foo = Image.open(image)
-                foo = foo.resize((625, 700))
-                foo.save(image_path, optimize=True, quality=95)
-
-                print(image, type(image), image_path, random_filename)
+                random_filename = barterswap.upload_and_give_name('static/avatars', request.files['image'],
+                                                                  barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
                 cursor.execute(
                     'UPDATE users SET username = %s, email = %s, avatar_url = %s WHERE username = %s',
                     (new_username, email, random_filename, username))
