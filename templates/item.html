@@ -2,6 +2,17 @@
 {% extends "base.html" %}
 {% block title %}{{ BarterSwap }}{% endblock %}
 {% block content %}
+    <style>
+        .user-link {
+            font-weight: bold;
+            color: black;
+            text-decoration: none;
+        }
+        .user-link:hover {
+            color: #007BFF;
+        }
+    </style>
+
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-8 offset-md-2">
@@ -18,9 +29,9 @@
                         <ul class="list-group">
                             {% for bid in bids %}
                                 <li class="list-group-item">
-
-                                    <p>User: {{ bid[4]}}</p>
                                     <p>Price: ${{ bid[3] }}</p>
+                                    <p>Date: {{ bid[2] }}</p>
+                                    <a class="user-link" onclick="redirecToProfile('{{ bid[4] }}')">User: {{ bid[4]}}</a>
                                 </li>
                             {% endfor %}
                         </ul>
@@ -41,8 +52,10 @@
     </div>
     <script>
         function redirectToMessage(username) {
-            console.log(username);
             window.location.href = "/messages/" + username;
+        }
+        function redirecToProfile(username) {
+            window.location.href = "/user/profile/" + username;
         }
     </script>
 {% endblock %}
