@@ -25,27 +25,20 @@ def add_item():
         price = request.form['price']
         category = request.form['category']
         condition = request.form['condition']
-        random_filename = None
-        try:  # TODO bu try except silinecek
-            random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
-                                                              barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
-        except Exception as e:
-            print(e, 12345)
-        # ADD FLASH FEATURE IN THE FUTURE
-        if len(name) > 100:
-            # flash("Item name cannot exceed 100 characters", "error")
-            return redirect(url_for('item_handlers.add_item'))
+        random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                          barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
 
-        if len(description) > 500:
-            # flash("Description cannot exceed 500 characters", "error")
-            return redirect(url_for('item_handlers.add_item'))
+        validations = [(name, 100, "Item name cannot exceed 100 characters"),
+                       (description, 500, "Description cannot exceed 500 characters"),
+                       (price, 10, "Price value cannot exceed 10 characters")]
 
-        if len(price) > 10:
-            # flash("Price value cannot exceed 10 characters", "error")
-            return redirect(url_for('item_handlers.add_item'))
+        for field, max_length, error_message in validations:
+            if len(field) > max_length:
+                return redirect(url_for('item_handlers.add_item'))
+
         user_id = session['user_id']
         barterswapdb.insert_item(user_id, name, description, category, price, condition, random_filename)
-        return redirect(url_for('home.home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
+        return redirect(url_for('home.home'))
     else:
         return render_template('additem.html', max_content_length=barterswap.max_content_length,
                                ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
@@ -56,7 +49,7 @@ def get_item(item_id):
     # TODO what if item does not exists?
 
     item = barterswapdb.get_item_by_id(item_id)
-    seller = barterswapdb.get_user_data_by_user_id(item[1])
+    seller = barterswapdb.get_username_by_user_id(item[1])
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
     bids = barterswapdb.get_top_bids_by_item_id(item_id)
     return render_template('item.html', item=tuple(item), bids=bids, seller=seller)
