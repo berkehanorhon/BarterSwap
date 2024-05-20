@@ -88,6 +88,7 @@ def edit_item(item_id):
 
     if 'user_id' not in session:
         flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
 
     if request.method == 'POST':
         print(request.form)
