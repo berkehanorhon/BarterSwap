@@ -1,5 +1,6 @@
 from flask import Flask, render_template,request,jsonify,redirect,url_for
 from flask_socketio import SocketIO
+from flask_sqlalchemy import SQLAlchemy
 
 from admin_handlers import admin_handlers
 from bid_handlers import bid_handlers
@@ -9,12 +10,14 @@ from item_handlers import item_handlers
 from home import home_bp
 from errorhandler import error_bp
 import barterswap
-
+import os
+import barterswapdb
 app = Flask(__name__)
 socketio = SocketIO()
 
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 app.config['MAX_CONTENT_LENGTH'] = barterswap.max_content_length
+
 app.secret_key = 'your_secret_key_here'
 
 app.register_blueprint(error_bp)
@@ -25,6 +28,7 @@ app.register_blueprint(bid_handlers, url_prefix='/items/bid')
 app.register_blueprint(message_routes, url_prefix='/messages')
 app.register_blueprint(admin_handlers, url_prefix='/admin')
 socketio.init_app(app)
+barterswapdb.start_db_pool(app)
 
 @app.route('/<path:path>')
 def catch_all(path):

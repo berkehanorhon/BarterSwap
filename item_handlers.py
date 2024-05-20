@@ -8,6 +8,7 @@ import uuid
 import mimetypes
 from PIL import Image
 import barterswap
+import barterswapdb
 
 item_handlers = Blueprint('item_handlers', __name__, static_folder='static', template_folder='templates')
 
@@ -43,14 +44,7 @@ def add_item():
             # flash("Price value cannot exceed 10 characters", "error")
             return redirect(url_for('item_handlers.add_item'))
         user_id = session['user_id']
-        conn = RunFirstSettings.create_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            'INSERT INTO items (user_id,title, description, category, starting_price,current_price, condition,image_url) VALUES (%s, %s, %s, %s, %s,%s,%s,%s)',
-            (user_id, name, description, category, price, price, condition, random_filename))
-        conn.commit()
-        conn.close()
-
+        barterswapdb.insert_item(user_id, name, description, category, price, condition, random_filename)
         return redirect(url_for('home.home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
     else:
         return render_template('additem.html', max_content_length=barterswap.max_content_length,
@@ -59,27 +53,13 @@ def add_item():
 
 @item_handlers.route('/<int:item_id>')
 def get_item(item_id):
-    # REWRITE WITH BIDS
-    conn = RunFirstSettings.create_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
-    item = list(cursor.fetchone())
-    cursor.execute('SELECT username FROM users WHERE user_id = %s', (item[1],))
-    seller = cursor.fetchone()[0]
+    # TODO what if item does not exists?
+
+    item = barterswapdb.get_item_by_id(item_id)
+    seller = barterswapdb.get_user_data_by_user_id(item[1])
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
-    cursor.execute('''
-        SELECT bids.*, users.username 
-        FROM bids 
-        INNER JOIN users ON bids.user_id = users.user_id 
-        WHERE bids.item_id = %s 
-        ORDER BY bids.bid_amount DESC 
-        LIMIT 3
-    ''', (item_id,))
-    bids = cursor.fetchall()
-
-    conn.close()
-
-    return render_template('item.html', item=tuple(item), bids=bids , seller = seller)
+    bids = barterswapdb.get_top_bids_by_item_id(item_id)
+    return render_template('item.html', item=tuple(item), bids=bids, seller=seller)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
@@ -91,18 +71,9 @@ def edit_item(item_id):
         return redirect(url_for('user_handlers.signin'))
 
     if request.method == 'POST':
-        print(request.form)
-        # if 1:
-        #     return render_template('404.html')
-        # check item is owned by session user
         user_id = session['user_id']
-        conn = RunFirstSettings.create_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT 1 FROM items WHERE item_id = %s and user_id = %s', (item_id, user_id))
-        z = cursor.fetchone()
-        print(z)
-        if not z:
-            # flash("You do not have access to edit this item!", "error")
+        if not barterswapdb.is_user_owns_the_item(user_id, item_id):
+            flash("You do not have access to edit this item!", "error")
             return redirect(url_for('home.home'))
         # TODO image editing will be added
         name = request.form['name']
@@ -110,29 +81,14 @@ def edit_item(item_id):
         # category = request.form['category']
         # condition = request.form['condition']
         if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
-            try:  # TODO bu try except silinecek
-                random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
-                                                                  barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
-                cursor.execute(
-                    'UPDATE items SET title = %s, description = %s, image_url = %s WHERE item_id = %s',
-                    (name, description, random_filename, item_id))
-                conn.commit()
-            except Exception as e:
-                print(e, 54321)
+            random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                              barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
+            barterswapdb.update_item_v1(name, description, random_filename, item_id)
         else:
-            cursor.execute(
-                'UPDATE items SET title = %s, description = %s WHERE item_id = %s',
-                (name, description, item_id))
-            conn.commit()
-        conn.close()
+            barterswapdb.update_item_v2(name, description, item_id)
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
     elif request.method == 'GET':
-        # REWRITE WITH BIDS
-        conn = RunFirstSettings.create_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
-        item = list(cursor.fetchone())
+        item = barterswapdb.get_item_by_id(item_id)
         item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
-        conn.close()
         return render_template('edititem.html', item=item, max_content_length=barterswap.max_content_length,
                                ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
