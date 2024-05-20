@@ -2,6 +2,30 @@
 {% extends "base.html" %}
 {% block title %}View Users{% endblock %}
 {% block content %}
+    <style>
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    .pagination a {
+        color: black;
+        text-decoration: none;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 5px 10px;
+        border-radius: 5px;
+        margin: 5px 2px;
+    }
+    .pagination a:hover {
+        background-color: #e9ecef;
+    }
+    .pagination a.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    </style>
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <h2 class="text-center mb-4">All Users</h2>
@@ -9,10 +33,9 @@
             <ul class="list-group">
                 {% for user in users %}
                     <li class="list-group-item">
-                        <h3>{{ user[2] }}</h3>
-                        <p>Description: {{ user[3] }}</p>
-                        <p>Current Price: ${{ user[1] }}</p>
-
+                        <h3>{{ user[1] }}</h3>
+                        <p>Mail: {{ user[3] }}</p>
+                        <button class="btn btn-primary" onclick="redirectToUser('{{ user[1] }}')">View Profile</button>
                     </li>
                 {% endfor %}
             </ul>
@@ -23,11 +46,16 @@
                     {% if page_num == current_page %}
                         <a class="active" href="#">{{ page_num }}</a>
                     {% else %}
-                        <a href="{{ url_for('home.home', page=page_num) }}">{{ page_num }}</a>
+                        <a href="{{ url_for('admin_handlers.view_users', page=page_num) }}">{{ page_num }}</a>
                     {% endif %}
                 {% endfor %}
             </div>
 
         </div>
     </div>
+    <script>
+        function redirectToUser(username) {
+            window.location.href = "/user/profile/" + username ;
+        }
+    </script>
 {% endblock %}

@@ -25,8 +25,8 @@ def view_users(page):
     cursor = conn.cursor()
 
     cursor.execute('SELECT COUNT(*) FROM users WHERE username LIKE %s', ('%' + search_query + '%',))
-    total_items = cursor.fetchone()[0]
-    total_pages = math.ceil(total_items / per_page)
+    total_users = cursor.fetchone()[0]
+    total_pages = math.ceil(total_users / per_page)
 
     if page <= 0 or page > total_pages:
         return render_template('404.html')

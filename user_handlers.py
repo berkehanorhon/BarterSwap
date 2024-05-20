@@ -53,10 +53,14 @@ def signin():
             flash('Successfully logged in!', 'Login Success')
             session['user_id'] = user[0]
             session['username'] = user[1]
-            if is_admin[0] == False:
+            print(is_admin[0])
+            if is_admin[0] is None:
+                print(1)
+                session['is_admin'] = False
                 session['balance'] = virtualcurrency[1]
                 return redirect(url_for('home.home'))
             else:
+                print(2)
                 session['is_admin'] = True
                 return redirect(url_for('admin_handlers.home'))
         else:
