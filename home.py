@@ -9,7 +9,7 @@ home_bp = Blueprint('home', __name__, static_folder='static', template_folder='t
 @home_bp.route("/", defaults={'page': 1})
 @home_bp.route("/<int:page>")
 def home(page):
-    if 'is_admin' in session:
+    if 'is_admin' in session and session['is_admin']:
         return redirect(url_for('admin_handlers.home'))
 
     per_page = 10  # Change this as per your requirement

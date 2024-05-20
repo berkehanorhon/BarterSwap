@@ -18,7 +18,7 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     {% if session['user_id'] %}
-                        {% if "is_admin" not in session%}
+                        {% if not session["is_admin"]%}
                         <li class="nav-item">
                             <button class="nav-link balance-btn">
                                 <span class="balance-icon">💰</span> Balance: {{ user_balance }}
