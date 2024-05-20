@@ -45,14 +45,20 @@ def signin():
         cursor.execute('SELECT * FROM virtualcurrency WHERE user_id = %s', (user[0],))
         virtualcurrency = cursor.fetchone()
 
+        cursor.execute('SELECT is_admin FROM users WHERE username = %s', (username,))
+        is_admin = cursor.fetchone()
         conn.close()
 
         if user and check_password_hash(user[2], password):
             flash('Successfully logged in!', 'Login Success')
             session['user_id'] = user[0]
             session['username'] = user[1]
-            session['balance'] = virtualcurrency[1]
-            return redirect(url_for('home.home'))
+            if is_admin[0] == False:
+                session['balance'] = virtualcurrency[1]
+                return redirect(url_for('home.home'))
+            else:
+                session['is_admin'] = True
+                return redirect(url_for('admin_handlers.home'))
         else:
             flash('Invalid email or password', 'signin-error')
             return redirect(url_for('user_handlers.signin'))

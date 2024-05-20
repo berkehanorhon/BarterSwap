@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ BarterSwap }}{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Admin Home</h1>
+        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_users') }}">View All Users</a><br>
+        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_items') }}">View All Items</a><br>
+        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_transactions') }}">View All Transactions</a><br>
+        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_withdraw_requests') }}">View Withdraw Requests</a>
+    </div>
+{% endblock %}
