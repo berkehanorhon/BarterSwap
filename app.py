@@ -3,6 +3,7 @@ from flask_socketio import SocketIO
 
 from admin_handlers import admin_handlers
 from balance_handlers import balance_handlers
+from balance_socket import socketio
 from bid_handlers import bid_handlers
 from message_routes import message_routes
 from user_handlers import user_handlers
@@ -12,7 +13,6 @@ from errorhandler import error_bp
 import barterswap
 
 app = Flask(__name__)
-socketio = SocketIO()
 
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 app.config['MAX_CONTENT_LENGTH'] = barterswap.max_content_length
@@ -33,5 +33,5 @@ def catch_all(path):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app)
     #app.run(debug=True)

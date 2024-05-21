@@ -43,6 +43,12 @@ def signin():
         cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
 
+        # If user is none, then the username is not in the database
+        if user is None:
+            flash('Invalid email or password', 'signin-error')
+            conn.close()
+            return redirect(url_for('user_handlers.signin'))
+
         cursor.execute('SELECT * FROM virtualcurrency WHERE user_id = %s', (user[0],))
         virtualcurrency = cursor.fetchone()
 
