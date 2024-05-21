@@ -47,9 +47,14 @@ def add_item():
 @item_handlers.route('/<int:item_id>')
 def get_item(item_id):
     # TODO what if item does not exists?
+    print(barterswapdb.get_itemdata_by_id(item_id, ["item_id"]), 12312321321)
 
-    item = barterswapdb.get_item_by_id(item_id)
-    seller = barterswapdb.get_username_by_user_id(item[1])
+    item = barterswapdb.get_itemdata_by_id(item_id, "*")
+    print(barterswapdb.get_user_balance(item[1]), 123123213215555)
+    print(barterswapdb.get_user_balance(float(item[1])), item[1] + 1)
+    print(barterswapdb.get_user_balance(float(item[1])))
+    seller = barterswapdb.get_userdata_by_user_id(item[1], ["username"])
+
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
     bids = barterswapdb.get_top_bids_by_item_id(item_id)
     return render_template('item.html', item=tuple(item), bids=bids, seller=seller)
@@ -81,7 +86,7 @@ def edit_item(item_id):
             barterswapdb.update_item_v2(name, description, item_id)
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
     elif request.method == 'GET':
-        item = barterswapdb.get_item_by_id(item_id)
+        item = barterswapdb.get_itemdata_by_id(item_id, "*")
         item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
         return render_template('edititem.html', item=item, max_content_length=barterswap.max_content_length,
                                ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
