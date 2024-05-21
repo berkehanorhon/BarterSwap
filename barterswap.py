@@ -3,6 +3,7 @@ import os.path
 from PIL import Image
 from werkzeug.utils import secure_filename
 import uuid
+from datetime import datetime, timedelta
 
 max_content_length = 5 * 1024 * 1024
 ALLOWED_ADDITEM_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/jpg'}
@@ -23,3 +24,9 @@ def upload_and_give_name(path, image, allowed_types):
 
     print(image, type(image), image_path, random_filename)
     return random_filename
+
+def set_end_time(hours):
+    now = datetime.utcnow()
+    end_time = now + timedelta(hours=hours)
+    end_time = end_time.replace(minute=end_time.minute if end_time.second < 30 else end_time.minute + 1, second=55, microsecond=0)
+    return end_time
