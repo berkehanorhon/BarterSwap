@@ -2,6 +2,7 @@ from flask import Flask, render_template,request,jsonify,redirect,url_for
 from flask_socketio import SocketIO
 
 from admin_handlers import admin_handlers
+from balance_handlers import balance_handlers
 from bid_handlers import bid_handlers
 from message_routes import message_routes
 from user_handlers import user_handlers
@@ -24,6 +25,7 @@ app.register_blueprint(item_handlers,url_prefix='/items')
 app.register_blueprint(bid_handlers, url_prefix='/items/bid')
 app.register_blueprint(message_routes, url_prefix='/messages')
 app.register_blueprint(admin_handlers, url_prefix='/admin')
+app.register_blueprint(balance_handlers, url_prefix='/balance')
 socketio.init_app(app)
 
 @app.route('/<path:path>')

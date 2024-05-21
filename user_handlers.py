@@ -1,15 +1,16 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, Blueprint, flash, session
-import psycopg2
-import yaml
 from werkzeug.security import generate_password_hash, check_password_hash
 import RunFirstSettings
 import re
 import barterswap
-import mimetypes
-import os.path
-from PIL import Image
-from werkzeug.utils import secure_filename
-import uuid
+from tronapi import Tron, HttpProvider
+
+full_node = HttpProvider('https://api.trongrid.io')
+solidity_node = HttpProvider('https://api.trongrid.io')
+event_server = 'https://api.trongrid.io'
+
+tron = Tron(full_node=full_node,solidity_node=solidity_node,event_server=event_server)
+
 
 user_handlers = Blueprint('user_handlers', __name__, static_folder='static', template_folder='templates')
 
@@ -86,16 +87,20 @@ def signup():
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
 
+        new_account = tron.create_account
         # we can combine these two queries
-        cursor.execute('INSERT INTO users (username, password,email) VALUES (%s, %s,%s)',
-                       (username, hashed_password, mail))
+        cursor.execute('INSERT INTO users (username, password,email,trx_address) VALUES (%s, %s,%s,%s)',
+                       (username, hashed_password, mail,new_account.address["base58"]))
+
+        cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
+
         # add lock here
         cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
 
-        # Everyone who register will get 1000 virtual currency
+        # Everyone who register will get 10 tl
         # TODO we need to check constraints including UNIQUE constraint
-        cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 1000))
+        cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 10))
 
         conn.commit()
         conn.close()
