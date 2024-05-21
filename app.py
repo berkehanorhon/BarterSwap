@@ -27,6 +27,7 @@ app.register_blueprint(message_routes, url_prefix='/messages')
 app.register_blueprint(admin_handlers, url_prefix='/admin')
 app.register_blueprint(auction_handlers, url_prefix="/auctions")
 socketio.init_app(app)
+barterswap.create_scheduler().start()
 
 @app.route('/<path:path>')
 def catch_all(path):
