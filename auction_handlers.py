@@ -18,8 +18,8 @@ def start_auction(item_id, hours):
         flash("You need to sign in first", "error")
         return redirect(url_for('user_handlers.signin'))
 
-    if hours > 720:
-        flash("Auction time can not be bigger than 1 month!", "error")
+    if hours > 720 or hours < 1:
+        flash("Auction time can not be bigger than 1 month and can not be smaller than 1 hour!", "error")
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
 
     user_id = session['user_id']
