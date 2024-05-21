@@ -57,8 +57,12 @@ def process_expired_auctions():
                             (auction[0],))
                 highest_bidder_id = cur.fetchone()
 
-                # If there is a highest bid, create a transaction record
-                if highest_bidder_id:
+                # Check if a transaction already exists for this item_id
+                cur.execute('SELECT 1 FROM Transactions WHERE item_id = %s', (auction[0],))
+                transaction_exists = cur.fetchone()
+
+                # If there is a highest bid and no transaction exists, create a transaction record
+                if highest_bidder_id and not transaction_exists:
                     cur.execute('INSERT INTO Transactions (item_id, buyer_id, transaction_date) VALUES (%s, %s, %s)',
                                 (auction[0], highest_bidder_id, now))
 
