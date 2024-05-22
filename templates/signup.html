@@ -22,24 +22,24 @@
                     <form action="{{ url_for('user_handlers.signup') }}" method="post">
                         <div class="mb-3">
                             <label for="name" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="name" name="username" placeholder="Enter your Username">
+                            <input type="text" class="form-control" id="name" name="username" placeholder="Enter your Username" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="mail" name="mail" placeholder="Enter your email">
+                            <input type="email" class="form-control" id="mail" name="mail" placeholder="Enter your email" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
                         </div>
                         <div class="col">
                             <button type="submit" class="btn btn-primary">Signup</button>
                             <a href="{{ url_for('user_handlers.signin') }}" class="ms-4 text-primary">Do you already have an account?</a>
                         </div>
-
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    {% include 'flashmessages.html' %}
 {% endblock %}

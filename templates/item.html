@@ -35,13 +35,16 @@
                                 </li>
                             {% endfor %}
                         </ul>
-                        <form action="{{ url_for('bid_handlers.add_bid', item_id=item[0]) }}" method="post">
-                            <div class="form-group">
-                                <label for="bid_amount">Your Bid:</label>
-                                <input type="number" class="form-control" id="bid_amount" name="bid_amount" min="{{ item[6] + 1 }}" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Place Bid</button>
-                        </form>
+                        {% if end_time %} <!-- Burada 'condition' yerine koşulunuzu yazın -->
+                            <div id="countdown" data-end-time="{{ end_time }}"></div>
+                            <form action="{{ url_for('bid_handlers.add_bid', item_id=item[0]) }}" method="post">
+                                <div class="form-group">
+                                    <label for="bid_amount">Your Bid:</label>
+                                    <input type="number" class="form-control" id="bid_amount" name="bid_amount" min="{{ item[6] + 1 }}" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Place Bid</button>
+                            </form>
+                        {% endif %}
                         <button class="btn btn-primary" onclick="redirectToMessage('{{ seller }}')">Message Seller</button>
 
                     </div>
@@ -50,6 +53,7 @@
         </div>
 
     </div>
+    {% include 'flashmessages.html' %}
     <script>
         function redirectToMessage(username) {
             window.location.href = "/messages/" + username;
@@ -57,5 +61,33 @@
         function redirecToProfile(username) {
             window.location.href = "/user/profile/" + username;
         }
+
+        function startCountdown() {
+          var countdownElement = document.getElementById('countdown');
+          var endTime = new Date(countdownElement.getAttribute('data-end-time')).getTime();
+          var timezoneOffset = new Date().getTimezoneOffset();
+          var timezoneOffsetInMillis = timezoneOffset * 60 * 1000;
+          endTime -= timezoneOffsetInMillis;
+
+          var countdownInterval = setInterval(function() {
+            var now = new Date().getTime();
+            var distance = endTime - now;
+
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            countdownElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+            if (distance < 0) {
+              clearInterval(countdownInterval);
+              countdownElement.innerHTML = "AUCTION END!";
+            }
+          }, 1000);
+        }
+
+        startCountdown();
     </script>
+
 {% endblock %}

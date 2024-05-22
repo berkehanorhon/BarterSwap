@@ -40,7 +40,7 @@ def signin():
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        cursor.execute('SELECT user_id, username, password, is_admin FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
 
         # If user is none, then the username is not in the database
@@ -52,22 +52,21 @@ def signin():
         cursor.execute('SELECT * FROM virtualcurrency WHERE user_id = %s', (user[0],))
         virtualcurrency = cursor.fetchone()
 
-        cursor.execute('SELECT is_admin FROM users WHERE username = %s', (username,))
-        is_admin = cursor.fetchone()
         conn.close()
 
         if user and check_password_hash(user[2], password):
-            flash('Successfully logged in!', 'Login Success')
+            is_admin = user[3]
+            if is_admin:
+                flash('Hoş geldin sahip!', 'Admin Login')
+            else:
+                flash('Successfully logged in!', 'Login Success')
             session['user_id'] = user[0]
             session['username'] = user[1]
-            print(is_admin[0])
-            if is_admin[0] is None:
-                print(1)
+            if not is_admin:
                 session['is_admin'] = False
                 session['balance'] = virtualcurrency[1]
                 return redirect(url_for('home.home'))
             else:
-                print(2)
                 session['is_admin'] = True
                 return redirect(url_for('admin_handlers.home'))
         else:
@@ -82,35 +81,56 @@ def signup():
     if 'user_id' in session:
         return redirect(url_for('home.home'))
 
-    # add extra code here
-    # check is username or mail used before
     if request.method == 'POST':
         data = request.form
         username = data['username']
         mail = data['mail']
         password = data['password']
+
+        # Check username format
+        if not re.match('^[a-zA-Z0-9]+$', username) or not (3 <= len(username) <= 20):
+            flash("Invalid username format", "signup error")
+            return render_template('signup.html')
+
+        # Check email format
+        if not re.match('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', mail):
+            flash("Invalid email format", "signup error")
+            return render_template('signup.html')
+
+        # Check password format
+        if not re.search('[A-Z]', password) or not re.search('\d', password) or len(password) < 8:
+            flash("Invalid password format", "signup error")
+            return render_template('signup.html')
+
         hashed_password = generate_password_hash(password)
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
-
+        cursor.execute('SELECT * FROM users WHERE username = %s OR email = %s', (username, mail))
+        if cursor.fetchone() is not None:
+            flash("Username or email is already used", "signup error")
+            return render_template('signup.html')
         new_account = tron.create_account
-        # we can combine these two queries
-        cursor.execute('INSERT INTO users (username, password,email,trx_address) VALUES (%s, %s,%s,%s)',
+        try:
+            # Start transaction
+            cursor.execute('BEGIN')
+                    cursor.execute('INSERT INTO users (username, password,email,trx_address) VALUES (%s, %s,%s,%s)',
                        (username, hashed_password, mail,new_account.address["base58"]))
 
-        cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
+            cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
 
-        # add lock here
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-        user = cursor.fetchone()
+            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+            user = cursor.fetchone()
+            cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 10))
 
-        # Everyone who register will get 10 tl
-        # TODO we need to check constraints including UNIQUE constraint
-        cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 10))
-
-        conn.commit()
-        conn.close()
-
+            # Commit transaction
+            conn.commit()
+        except Exception as e:
+            # Rollback transaction in case of error
+            conn.rollback()
+            flash(str(e), "signup error")
+            return render_template('signup.html')
+        finally:
+            conn.close()
         flash("You have successfully registered", "signup success")
         return redirect(url_for("user_handlers.signin"))
     else:
@@ -171,7 +191,7 @@ def user_profile_edit(username):
         new_user_exists = cursor.fetchone()
         if not user or (new_user_exists and new_username != username):
             return render_template('404.html')
-        print('is_new_image' in request.form and request.form['is_new_image'] == 'on')
+        # print('is_new_image' in request.form and request.form['is_new_image'] == 'on')
         if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
             try:  # TODO bu try except silinecek
                 random_filename = barterswap.upload_and_give_name('static/avatars', request.files['image'],
@@ -189,7 +209,7 @@ def user_profile_edit(username):
             conn.commit()
         conn.close()
         session['username'] = new_username
-        print("profile updated!")
+        flash("Profile updated!", "profile update")
         return redirect(url_for('user_handlers.user_profile', username=new_username))
 
     elif request.method == 'GET':

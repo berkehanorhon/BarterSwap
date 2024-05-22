@@ -8,6 +8,7 @@ from bid_handlers import bid_handlers
 from message_routes import message_routes
 from user_handlers import user_handlers
 from item_handlers import item_handlers
+from auction_handlers import auction_handlers
 from home import home_bp
 from errorhandler import error_bp
 import barterswap
@@ -25,13 +26,15 @@ app.register_blueprint(item_handlers,url_prefix='/items')
 app.register_blueprint(bid_handlers, url_prefix='/items/bid')
 app.register_blueprint(message_routes, url_prefix='/messages')
 app.register_blueprint(admin_handlers, url_prefix='/admin')
+app.register_blueprint(auction_handlers, url_prefix="/auctions")
 app.register_blueprint(balance_handlers, url_prefix='/balance')
-socketio.init_app(app)
+
 
 @app.route('/<path:path>')
 def catch_all(path):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
+    barterswap.create_scheduler().start()
+    socketio.init_app(app)
     socketio.run(app)
-    #app.run(debug=True)

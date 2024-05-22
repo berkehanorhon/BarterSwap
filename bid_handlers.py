@@ -1,8 +1,9 @@
 from flask import Blueprint, flash, redirect, url_for, request, session
-
 import RunFirstSettings
+import barterswap
 
 bid_handlers = Blueprint('bid_handlers', __name__, static_folder='static', template_folder='templates')
+
 
 @bid_handlers.route('/<int:item_id>/bid', methods=['POST'])
 def add_bid(item_id):
@@ -12,6 +13,12 @@ def add_bid(item_id):
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
+    now = barterswap.get_current_time()
+    cursor.execute('SELECT 1 FROM auctions WHERE item_id = %s and end_time > %s AND is_active = True', (item_id, now))
+    has_an_auction = cursor.fetchone()
+    if not has_an_auction:
+        flash("The auction has not started yet!", "error")
+        return redirect(url_for('item_handlers.get_item', item_id=item_id))
 
     cursor.execute('SELECT current_price,user_id FROM items WHERE item_id = %s', (item_id,))
 
@@ -19,7 +26,7 @@ def add_bid(item_id):
     owner_id = item[1]
     current_price = item[0]
 
-    if(owner_id == session['user_id']):
+    if (owner_id == session['user_id']):
         flash("You can't bid on your own item", "error")
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
 
@@ -27,10 +34,9 @@ def add_bid(item_id):
     balance = cursor.fetchone()[0]
 
     bid_amount = request.form['bid_amount']
-    if(float(balance) < float(current_price)) or (float(balance) < float(bid_amount)):
+    if (float(balance) < float(current_price)) or (float(balance) < float(bid_amount)):
         flash("You don't have enough balance", "error")
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
-
 
     print(bid_amount)
     # Check if the bid is higher than the current price
@@ -63,7 +69,8 @@ def add_bid(item_id):
 
     if len(bids) > 1:
         before_bid = bids[1]
-        cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s', (before_bid[3], before_bid[2]))
+        cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s',
+                       (before_bid[3], before_bid[2]))
 
     conn.commit()
     conn.close()

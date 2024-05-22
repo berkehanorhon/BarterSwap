@@ -76,10 +76,11 @@ def get_item(item_id):
         LIMIT 3
     ''', (item_id,))
     bids = cursor.fetchall()
-
+    cursor.execute('SELECT end_time FROM auctions where item_id = %s and is_active = True', (item_id,))
+    end_time = cursor.fetchone()
     conn.close()
-
-    return render_template('item.html', item=tuple(item), bids=bids , seller = seller)
+    end_time = end_time[0].isoformat() if end_time else end_time
+    return render_template('item.html', item=tuple(item), bids=bids , seller = seller, end_time = end_time)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
