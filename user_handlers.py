@@ -75,31 +75,54 @@ def signup():
     if 'user_id' in session:
         return redirect(url_for('home.home'))
 
-    # add extra code here
-    # check is username or mail used before
     if request.method == 'POST':
         data = request.form
         username = data['username']
         mail = data['mail']
         password = data['password']
+
+        # Check username format
+        if not re.match('^[a-zA-Z0-9]+$', username) or not (3 <= len(username) <= 20):
+            flash("Invalid username format", "signup error")
+            return render_template('signup.html')
+
+        # Check email format
+        if not re.match('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', mail):
+            flash("Invalid email format", "signup error")
+            return render_template('signup.html')
+
+        # Check password format
+        if not re.search('[A-Z]', password) or not re.search('\d', password) or len(password) < 8:
+            flash("Invalid password format", "signup error")
+            return render_template('signup.html')
+
         hashed_password = generate_password_hash(password)
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = %s OR email = %s', (username, mail))
+        if cursor.fetchone() is not None:
+            flash("Username or email is already used", "signup error")
+            return render_template('signup.html')
 
-        # we can combine these two queries
-        cursor.execute('INSERT INTO users (username, password,email) VALUES (%s, %s,%s)',
-                       (username, hashed_password, mail))
-        # add lock here
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-        user = cursor.fetchone()
+        try:
+            # Start transaction
+            cursor.execute('BEGIN')
+            cursor.execute('INSERT INTO users (username, password,email) VALUES (%s, %s,%s)',
+                           (username, hashed_password, mail))
+            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+            user = cursor.fetchone()
+            cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 1000))
 
-        # Everyone who register will get 1000 virtual currency
-        # TODO we need to check constraints including UNIQUE constraint
-        cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 1000))
-
-        conn.commit()
-        conn.close()
-
+            # Commit transaction
+            conn.commit()
+        except Exception as e:
+            # Rollback transaction in case of error
+            conn.rollback()
+            flash(str(e), "signup error")
+            return render_template('signup.html')
+        finally:
+            conn.close()
+        print(5)
         flash("You have successfully registered", "signup success")
         return redirect(url_for("user_handlers.signin"))
     else:

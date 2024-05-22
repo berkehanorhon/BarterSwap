@@ -12,6 +12,9 @@ ALLOWED_ADDITEM_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/jpg'}
 MAX_TRANSACTION_RETRY_COUNT = 2
 
 
+def get_current_time():
+    return datetime.utcnow()
+
 def upload_and_give_name(path, image, allowed_types):
     if not image:
         raise Exception("No image uploaded!")
@@ -41,7 +44,7 @@ def process_expired_auctions():
     print("Transaction executed!")
     conn = RunFirstSettings.create_connection()
     cur = conn.cursor()
-    now = datetime.utcnow()
+    now = get_current_time()
     for _ in range(MAX_TRANSACTION_RETRY_COUNT):
         try:
             # Start a new transaction
