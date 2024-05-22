@@ -76,10 +76,11 @@ def get_item(item_id):
         LIMIT 3
     ''', (item_id,))
     bids = cursor.fetchall()
-
+    cursor.execute('SELECT 1 FROM auctions where item_id = %s and is_active = True', (item_id,))
+    has_an_auction = cursor.fetchone()
     conn.close()
 
-    return render_template('item.html', item=tuple(item), bids=bids , seller = seller)
+    return render_template('item.html', item=tuple(item), bids=bids , seller = seller, has_an_auction = has_an_auction)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
