@@ -39,22 +39,23 @@ def signin():
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        cursor.execute('SELECT user_id, username, password, is_admin FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
 
         cursor.execute('SELECT * FROM virtualcurrency WHERE user_id = %s', (user[0],))
         virtualcurrency = cursor.fetchone()
 
-        cursor.execute('SELECT is_admin FROM users WHERE username = %s', (username,))
-        is_admin = cursor.fetchone()
         conn.close()
 
         if user and check_password_hash(user[2], password):
-            flash('Successfully logged in!', 'Login Success')
+            is_admin = user[3]
+            if is_admin:
+                flash('Hoş geldin sahip!', 'Admin Login')
+            else:
+                flash('Successfully logged in!', 'Login Success')
             session['user_id'] = user[0]
             session['username'] = user[1]
-            print(is_admin[0])
-            if is_admin[0] is None:
+            if not is_admin:
                 print(1)
                 session['is_admin'] = False
                 session['balance'] = virtualcurrency[1]
@@ -122,7 +123,6 @@ def signup():
             return render_template('signup.html')
         finally:
             conn.close()
-        print(5)
         flash("You have successfully registered", "signup success")
         return redirect(url_for("user_handlers.signin"))
     else:
@@ -183,7 +183,7 @@ def user_profile_edit(username):
         new_user_exists = cursor.fetchone()
         if not user or (new_user_exists and new_username != username):
             return render_template('404.html')
-        print('is_new_image' in request.form and request.form['is_new_image'] == 'on')
+        # print('is_new_image' in request.form and request.form['is_new_image'] == 'on')
         if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
             try:  # TODO bu try except silinecek
                 random_filename = barterswap.upload_and_give_name('static/avatars', request.files['image'],
@@ -201,7 +201,7 @@ def user_profile_edit(username):
             conn.commit()
         conn.close()
         session['username'] = new_username
-        print("profile updated!")
+        flash("Profile updated!", "profile update")
         return redirect(url_for('user_handlers.user_profile', username=new_username))
 
     elif request.method == 'GET':
