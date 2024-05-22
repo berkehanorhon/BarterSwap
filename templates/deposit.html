@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">Deposit to TRX Account</h3>
+                </div>
+                <div class="card-body">
+                    <div id="message" class="mt-2"></div>
+                    <div id="timer" class="mt-2"></div>
+                    <p class="mt-2">For the TRX deposit operation, scan the QR code below or send TRX to the TRX address. Min Deposit : 5 TRX</p>
+                    <p class="mt-2">TRX address: <span id="trx-address">{{ trx_address }}</span> <button id="copy-button" class="btn btn-light"><i class="fa fa-copy"></i></button></p>
+                    <div id="qrcode" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        var timeLeft = 60 * 60; // 1 hour in seconds
+        var timerElement = document.getElementById('timer');
+        var socket;
+
+        function updateTimer() {
+            var minutes = Math.floor(timeLeft / 60);
+            var seconds = timeLeft % 60;
+            timerElement.innerText = 'Remaining time: ' + minutes + ' minutes ' + seconds + ' seconds';
+
+            timeLeft--;
+            if (timeLeft < 0) {
+                alert('Operation failed. Try again.');
+                window.location.href = "{{ url_for('home.home') }}";
+            }
+        }
+
+        setInterval(updateTimer, 1000);
+
+        var trxAddress = "{{ trx_address }}";
+        var qrcode = new QRCode(document.getElementById("qrcode"), {
+            text: trxAddress,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        document.getElementById("copy-button").addEventListener("click", function() {
+            var copyText = document.getElementById("trx-address");
+            var textArea = document.createElement("textarea");
+            textArea.value = copyText.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("Copy");
+            textArea.remove();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            socket = io.connect('http://127.0.0.1:5000');
+        });
+        socket.on('transaction_complete', function(msg) {
+            alert(msg.message);
+            setTimeout(function() {
+                window.location.href = "/";
+            }, 5000);
+        });
+        socket.on('transaction_failed', function(msg) {
+            alert(msg.message);
+            setTimeout(function() {
+                window.location.href = "/";
+            }, 5000);
+        });
+    </script>
+
+{% endblock %}
