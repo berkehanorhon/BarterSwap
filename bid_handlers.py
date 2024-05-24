@@ -65,12 +65,12 @@ def add_bid(item_id):
 
     bids = cursor.fetchall()
     last_bid = bids[0]
-    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (last_bid[3], last_bid[2]))
+    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (last_bid[2], last_bid[1]))
 
     if len(bids) > 1:
         before_bid = bids[1]
         cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s',
-                       (before_bid[3], before_bid[2]))
+                       (before_bid[2], before_bid[1]))
 
     conn.commit()
     conn.close()
