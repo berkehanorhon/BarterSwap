@@ -55,7 +55,7 @@ def add_bid(item_id):
                    (bid_amount, item_id))
 
     cursor.execute('''
-        SELECT bids.*, users.username 
+        SELECT bids.user_id, bids.bid_amount, users.username 
         FROM bids 
         INNER JOIN users ON bids.user_id = users.user_id 
         WHERE bids.item_id = %s 
@@ -65,12 +65,12 @@ def add_bid(item_id):
 
     bids = cursor.fetchall()
     last_bid = bids[0]
-    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (last_bid[3], last_bid[2]))
+    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (last_bid[1], last_bid[0]))
 
     if len(bids) > 1:
         before_bid = bids[1]
         cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s',
-                       (before_bid[3], before_bid[2]))
+                       (before_bid[1], before_bid[0]))
 
     conn.commit()
     conn.close()
