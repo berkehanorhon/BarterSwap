@@ -8,6 +8,7 @@ import uuid
 import mimetypes
 from PIL import Image
 import barterswap
+import math
 
 item_handlers = Blueprint('item_handlers', __name__, static_folder='static', template_folder='templates')
 
@@ -137,3 +138,48 @@ def edit_item(item_id):
         conn.close()
         return render_template('edititem.html', item=item, max_content_length=barterswap.max_content_length,
                                ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
+
+@item_handlers.route("/myitems", defaults={'page': 1})
+@item_handlers.route("/myitems/<int:page>")
+def myitems(page):
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
+
+    per_page = 10  # Change this as per your requirement
+    offset = (page - 1) * per_page
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * from items where user_id = %s ORDER BY item_id LIMIT %s OFFSET %s', (session['user_id'], per_page, offset))
+    items = cursor.fetchall()
+    total_items = len(items)
+    total_pages = math.ceil(total_items / per_page)
+    conn.close()
+
+    return render_template('myitems.html', items=items, total_pages=total_pages + 1, current_page=page)
+
+@item_handlers.route("/myitems/search", defaults={'page': 1}, methods=['GET'])
+@item_handlers.route("/myitems/<int:page>", methods=['GET'])
+def search(page, per_page=10):
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
+
+    offset = (page - 1) * per_page
+
+    query = request.args.get('query')
+    if query == "":
+        return redirect(url_for('item_handlers.myitems'))
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM items WHERE user_id = %s and title ILIKE %s ORDER BY item_id LIMIT %s OFFSET %s", (session["user_id"], '%' + query + '%', per_page, offset))
+
+    items = cursor.fetchall()
+    total_items = len(items)
+    total_pages = math.ceil(total_items / per_page)
+    conn.close()
+
+    return render_template('myitems.html', items=items, search=query, total_pages=total_pages+1, current_page=page)

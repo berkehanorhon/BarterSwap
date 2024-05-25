@@ -37,6 +37,9 @@ def search(page, per_page=10):
 
     query = request.args.get('query')
 
+    if query == "":
+        return redirect(url_for('home.home'))
+
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM items WHERE title ILIKE %s ORDER BY item_id LIMIT %s OFFSET %s", ('%' + query + '%', per_page, offset))
