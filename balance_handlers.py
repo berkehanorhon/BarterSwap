@@ -53,10 +53,16 @@ def withdraw():
             if balance < amount:
                 flash('Not enough balance for this withdrawal', 'error')
             else:
-                # Update the user's balance
-                cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (amount, user_id))
-                conn.commit()
-                flash('The TRX address is valid and the withdrawal was successful.', 'success')
+                try:
+                    # Insert a record into the withdrawRequest table with 'Pending' state
+                    cursor.execute('INSERT INTO withdrawRequest (user_id, withdraw_amount, req_state, trx_address) VALUES (%s, %s, %s, %s)', (user_id, amount, 'Pending', trx_address))
+                    # Update the user's balance
+                    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (amount, user_id))
+                    conn.commit()
+                    flash('The TRX address is valid and the withdraw request is successful.', 'success')
+                except Exception as e:
+                    conn.rollback()
+                    flash('An error occurred while processing the withdrawal.', 'error')
         else:
             flash('The TRX address is not valid.', 'error')
 
