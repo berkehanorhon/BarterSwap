@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Account Balance
+{% endblock %}
+
+{% block content %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <div class="container">
+        <h1>Account Balance: {{ balance }}</h1>
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="deposits-tab" data-toggle="tab" href="#deposits" role="tab" aria-controls="deposits" aria-selected="true">Deposits</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="withdraws-tab" data-toggle="tab" href="#withdraws" role="tab" aria-controls="withdraws" aria-selected="false">Withdraw Requests</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="deposits" role="tabpanel" aria-labelledby="deposits-tab">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deposit in deposits %}
+                            <tr>
+                                <td>{{ deposit[0] }}</td>
+                                <td>{{ deposit[1] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="withdraws" role="tabpanel" aria-labelledby="withdraws-tab">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for withdraw in withdraws %}
+                            <tr>
+                                <td>{{ withdraw[0] }}</td>
+                                <td>{{ withdraw[1] }}</td>
+                                <td>{{ withdraw[2] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

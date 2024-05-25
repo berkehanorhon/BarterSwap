@@ -74,22 +74,37 @@ def view_items(page):
     # Update the html!!
     return render_template('admin/view_items.html', items=items , search=search_query, total_pages=total_pages+1, current_page=page)
 
-
-@admin_handlers.route('/view_transactions')
+@admin_handlers.route('/view_transactions', methods=['GET'])
 def view_transactions():
-    # Get all transactions from the database
-    # ...
+    if 'user_id' not in session or not session['is_admin']:
+        return redirect(url_for('user_handlers.signin'))
 
-    # Render a template with the transactions
-    return render_template('view_transactions.html', transactions=transactions)
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Get all transactions
+    cursor.execute('SELECT * FROM Transactions')
+    transactions = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('admin/view_transactions.html', transactions=transactions)
 
 @admin_handlers.route('/view_withdraw_requests')
 def view_withdraw_requests():
-    # Get all withdraw requests from the database
-    # ...
+    if 'user_id' not in session or not session['is_admin']:
+        return redirect(url_for('user_handlers.signin'))
 
-    # Render a template with the withdraw requests
-    return render_template('view_withdraw_requests.html', withdraw_requests=withdraw_requests)
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Get all withdraw requests
+    cursor.execute('SELECT * FROM withdrawrequest')
+    requests = cursor.fetchall()
+    print(requests)
+    conn.close()
+
+    return render_template('admin/withdraw_requests.html', requests=requests)
 
 @admin_handlers.route('/ban_user/<int:user_id>', methods=['GET'])
 def ban_user(user_id):

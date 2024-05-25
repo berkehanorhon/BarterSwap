@@ -46,6 +46,7 @@ async def check_transaction(public_key, user_id):
             tron.default_address = public_key
 
             balance = float(balance / 1000000)
+            cursor.execute('INSERT INTO deposit (user_id, deposit_amount) VALUES (%s, %s)', (user_id, balance))
             transaction = tron.trx.send_transaction(source_address, balance)
             conn.commit()
             cursor.close()

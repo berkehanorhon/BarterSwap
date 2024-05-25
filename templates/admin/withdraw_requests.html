@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Withdraw Requests
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Withdraw Requests</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Withdraw ID</th>
+                    <th scope="col">User ID</th>
+                    <th scope="col">Withdraw Amount</th>
+                    <th scope="col">Withdraw Date</th>
+                    <th scope="col">Request State</th>
+                    <th scope="col">TRX Address</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                    <tr>
+                        <td>{{ request[0] }}</td>
+                        <td>{{ request[1] }}</td>
+                        <td>{{ request[2] }}</td>
+                        <td>{{ request[3] }}</td>
+                        <td>{{ request[4] }}</td>
+                        <td>{{ request[5] }}</td>
+                        <td>
+                            <button class="btn btn-success">Accept</button>
+                            <button class="btn btn-danger">Reject</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

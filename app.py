@@ -28,7 +28,7 @@ app.register_blueprint(message_routes, url_prefix='/messages')
 app.register_blueprint(admin_handlers, url_prefix='/admin')
 app.register_blueprint(auction_handlers, url_prefix="/auctions")
 app.register_blueprint(balance_handlers, url_prefix='/balance')
-
+socketio.init_app(app)
 
 @app.route('/<path:path>')
 def catch_all(path):
@@ -36,5 +36,5 @@ def catch_all(path):
 
 if __name__ == '__main__':
     barterswap.create_scheduler().start()
-    socketio.init_app(app)
+
     socketio.run(app)
