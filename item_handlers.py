@@ -53,7 +53,7 @@ def add_item():
 
         return redirect(url_for('home.home'))  # Ekleme işlemi başarılı olduğunda ana sayfaya yönlendir
     else:
-        return render_template('additem.html', max_content_length=barterswap.max_content_length,
+        return render_template('item/additem.html', max_content_length=barterswap.max_content_length,
                                ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
 
 
@@ -80,7 +80,7 @@ def get_item(item_id):
     end_time = cursor.fetchone()
     conn.close()
     end_time = end_time[0].isoformat() if end_time else end_time
-    return render_template('item.html', item=tuple(item), bids=bids , seller = seller, end_time = end_time)
+    return render_template('item/item.html', item=tuple(item), bids=bids, seller = seller, end_time = end_time)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
@@ -135,5 +135,5 @@ def edit_item(item_id):
         item = list(cursor.fetchone())
         item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
         conn.close()
-        return render_template('edititem.html', item=item, max_content_length=barterswap.max_content_length,
+        return render_template('item/edititem.html', item=item, max_content_length=barterswap.max_content_length,
                                ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)

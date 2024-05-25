@@ -27,7 +27,7 @@ def deposit():
     trx_address = cursor.fetchone()[0]
 
     conn.close()
-    return render_template('deposit.html', balance=balance,trx_address = trx_address)
+    return render_template('account_balance/deposit.html', balance=balance, trx_address = trx_address)
 
 @balance_handlers.route('/withdraw', methods=['GET', 'POST'])
 def withdraw():
@@ -73,4 +73,29 @@ def withdraw():
     balance = cursor.fetchone()[0]
 
     conn.close()
-    return render_template('withdraw.html', balance=balance)
+    return render_template('account_balance/withdraw.html', balance=balance)
+
+@balance_handlers.route('/account_balance', methods=['GET', 'POST'])
+def account_balance():
+    if 'user_id' not in session:
+        return redirect(url_for('user_handlers.signin'))
+
+    user_id = session['user_id']
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Get the user's balance
+    cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user_id,))
+    balance = cursor.fetchone()[0]
+
+    # Get the user's deposits
+    cursor.execute('SELECT deposit_amount, deposit_date FROM deposit WHERE user_id = %s', (user_id,))
+    deposits = cursor.fetchall()
+
+    # Get the user's withdraw requests
+    cursor.execute('SELECT withdraw_amount, withdraw_date, req_state FROM withdrawRequest WHERE user_id = %s', (user_id,))
+    withdraws = cursor.fetchall()
+
+    conn.close()
+    return render_template('account_balance/account_balance.html', balance=balance, deposits=deposits, withdraws=withdraws)
