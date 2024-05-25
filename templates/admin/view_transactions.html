@@ -1,10 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}
+    Transactions
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h3>Items</h3>
+                <ul class="list-group">
+                    {% for item in items %}
+                        <li class="list-group-item">{{ item.item_name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h1>Transactions</h1>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Item ID</th>
+                            <th scope="col">Buyer ID</th>
+                            <th scope="col">Transaction Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction[0] }}</td>
+                                <td>{{ transaction[1] }}</td>
+                                <td>{{ transaction[2] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
