@@ -90,11 +90,11 @@ def account_balance():
     balance = cursor.fetchone()[0]
 
     # Get the user's deposits
-    cursor.execute('SELECT deposit_amount, deposit_date FROM deposit WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT deposit_amount, deposit_date FROM deposit WHERE user_id = %s ORDER BY deposit_date DESC', (user_id,))
     deposits = cursor.fetchall()
 
     # Get the user's withdraw requests
-    cursor.execute('SELECT withdraw_amount, withdraw_date, req_state FROM withdrawRequest WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT withdraw_amount, withdraw_date, req_state FROM withdrawRequest WHERE user_id = %s ORDER BY withdraw_date DESC', (user_id,))
     withdraws = cursor.fetchall()
 
     conn.close()
