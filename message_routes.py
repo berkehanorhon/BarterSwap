@@ -31,7 +31,6 @@ def get_user_messages(username):
 
     cursor.execute('SELECT * FROM Messages WHERE (sender_id = %s AND receiver_id = %s) OR (sender_id = %s AND receiver_id = %s)', (session['user_id'], user_id, user_id, session['user_id']))
     messages = cursor.fetchall()
-    print(messages)
     conn.close()
     return render_template('message.html', messages=messages , username=username)
 
@@ -73,8 +72,6 @@ def get_users_last_messages():
                         users receiver ON m.receiver_id = receiver.user_id
                     WHERE
                         %s IN (m.sender_id, m.receiver_id);''', (session['user_id'],))
-    print(session['user_id'])
     messages = cursor.fetchall()
-    print(messages)
     conn.close()
     return render_template('messagebox.html', messages=messages)
