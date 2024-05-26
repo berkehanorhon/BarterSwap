@@ -1,4 +1,4 @@
-{% extends "item.html" %}
+{% extends "item/item.html" %}
 {% block addbid %}
     <form action="{{ url_for('item_handlers.add_bid', item_id=item[0]) }}" method="post">
         <div class="form-group">

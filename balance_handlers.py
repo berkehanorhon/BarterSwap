@@ -9,7 +9,7 @@ tron = Tron()
 balance_handlers = Blueprint('balance_handlers', __name__, static_folder='static', template_folder='templates')
 
 
-@balance_handlers.route('/balance', methods=['GET', 'POST'])
+@balance_handlers.route('/deposit', methods=['GET', 'POST'])
 def deposit():
     if 'user_id' not in session:
         return redirect(url_for('user_handlers.signin'))
@@ -19,31 +19,6 @@ def deposit():
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
 
-
-    if request.method == 'POST':
-        # Get the user's TRX public key
-        cursor.execute('SELECT trx_public_key FROM users WHERE user_id = %s', (user_id,))
-        public_key = cursor.fetchone()[0]
-        # Check if the user wants to load money into their TRX account
-        amount = request.form['amount']
-
-        # Get the user's private key
-        cursor.execute('SELECT trx_private_key FROM user_keys WHERE user_id = %s', (user_id,))
-        private_key = cursor.fetchone()[0]
-
-        # Perform the money loading operation
-        tron.private_key = private_key
-        transaction = tron.trx.send_transaction(public_key, amount)
-
-        # Check if the money loading operation was successful
-        transaction_info = tron.trx.get_transaction(transaction['transaction']['txID'])
-        if transaction_info['ret'][0]['contractRet'] != 'SUCCESS':
-            flash('Transaction failed', 'error')
-            return redirect(url_for('balance_handlers.deposit'))
-
-        # Check if money has been transferred from another account to a specific address
-        asyncio.run(check_transaction(public_key, amount, user_id))
-
     # Get the user's balance
     cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user_id,))
     balance = cursor.fetchone()[0]
@@ -52,5 +27,75 @@ def deposit():
     trx_address = cursor.fetchone()[0]
 
     conn.close()
-    print(222)
-    return render_template('deposit.html', balance=balance,trx_address = trx_address)
+    return render_template('account_balance/deposit.html', balance=balance, trx_address = trx_address)
+
+@balance_handlers.route('/withdraw', methods=['GET', 'POST'])
+def withdraw():
+    if 'user_id' not in session:
+        return redirect(url_for('user_handlers.signin'))
+
+    user_id = session['user_id']
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        trx_address = request.form.get('trx_address')
+        amount = float(request.form.get('amount'))  # Get the withdrawal amount
+
+        # Check if the TRX address is valid
+        if tron.isAddress(trx_address):
+            # Get the user's balance
+            cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user_id,))
+            balance = cursor.fetchone()[0]
+
+            # Check if the user has enough balance
+            if balance < amount:
+                flash('Not enough balance for this withdrawal', 'error')
+            else:
+                try:
+                    # Insert a record into the withdrawRequest table with 'Pending' state
+                    cursor.execute('INSERT INTO withdrawRequest (user_id, withdraw_amount, req_state, trx_address) VALUES (%s, %s, %s, %s)', (user_id, amount, 'Pending', trx_address))
+                    # Update the user's balance
+                    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (amount, user_id))
+                    conn.commit()
+                    flash('The TRX address is valid and the withdraw request is successful.', 'success')
+                except Exception as e:
+                    conn.rollback()
+                    flash('An error occurred while processing the withdrawal.', 'error')
+        else:
+            flash('The TRX address is not valid.', 'error')
+
+
+
+    # Get the user's balance
+    cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user_id,))
+    balance = cursor.fetchone()[0]
+
+    conn.close()
+    return render_template('account_balance/withdraw.html', balance=balance)
+
+@balance_handlers.route('/account_balance', methods=['GET', 'POST'])
+def account_balance():
+    if 'user_id' not in session:
+        return redirect(url_for('user_handlers.signin'))
+
+    user_id = session['user_id']
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Get the user's balance
+    cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user_id,))
+    balance = cursor.fetchone()[0]
+
+    # Get the user's deposits
+    cursor.execute('SELECT deposit_amount, deposit_date FROM deposit WHERE user_id = %s ORDER BY deposit_date DESC', (user_id,))
+    deposits = cursor.fetchall()
+
+    # Get the user's withdraw requests
+    cursor.execute('SELECT withdraw_amount, withdraw_date, req_state FROM withdrawRequest WHERE user_id = %s ORDER BY withdraw_date DESC', (user_id,))
+    withdraws = cursor.fetchall()
+
+    conn.close()
+    return render_template('account_balance/account_balance.html', balance=balance, deposits=deposits, withdraws=withdraws)

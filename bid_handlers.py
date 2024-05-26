@@ -65,6 +65,7 @@ def add_bid(item_id):
 
     bids = cursor.fetchall()
     last_bid = bids[0]
+
     cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s', (last_bid[1], last_bid[0]))
 
     if len(bids) > 1:

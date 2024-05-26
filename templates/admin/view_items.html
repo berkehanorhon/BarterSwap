@@ -35,7 +35,7 @@
                     <li class="list-group-item">
                         <h3>{{ item[1] }}</h3>
                         <p>Mail: {{ item[3] }}</p>
-                        <button class="btn btn-primary" onclick="redirectToUser('{{ item[1] }}')">View Item</button>
+                        <button class="btn btn-primary" onclick="redirectToItem('{{ item[0] }}')">View Item</button>
                     </li>
                 {% endfor %}
             </ul>
@@ -54,8 +54,8 @@
         </div>
     </div>
     <script>
-        function redirectToUser(username) {
-            window.location.href = "/user/profile/" + username ;
+        function redirectToItem(item_id) {
+            window.location.href = "/items/" + item_id ;
         }
     </script>
 {% endblock %}
