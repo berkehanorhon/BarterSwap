@@ -1,4 +1,4 @@
-from flask import Flask, render_template,request,jsonify,redirect,url_for
+from flask import Flask, render_template,request,jsonify,redirect,url_for,session,flash
 from flask_socketio import SocketIO
 
 from admin_handlers import admin_handlers
@@ -12,6 +12,7 @@ from auction_handlers import auction_handlers
 from home import home_bp
 from errorhandler import error_bp
 import barterswap
+import RunFirstSettings
 
 app = Flask(__name__)
 
@@ -33,6 +34,18 @@ socketio.init_app(app)
 @app.route('/<path:path>')
 def catch_all(path):
     return render_template('404.html'), 404
+
+@app.before_request
+def check_ban_status():
+    if 'user_id' in session:
+        conn = RunFirstSettings.create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT is_banned FROM Users WHERE user_id = %s', (session['user_id'],))
+        result = cursor.fetchone()
+        conn.close()
+        if result is not None and result[0]:
+            flash("Your account has been banned.", "error")
+            return render_template('404.html'), 404
 
 if __name__ == '__main__':
     barterswap.create_scheduler().start()

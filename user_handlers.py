@@ -40,7 +40,7 @@ def signin():
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
 
-        cursor.execute('SELECT user_id, username, password, is_admin FROM users WHERE username = %s', (username,))
+        cursor.execute('SELECT user_id, username, password, is_admin, is_banned FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
 
         # If user is none, then the username is not in the database
@@ -62,6 +62,7 @@ def signin():
                 flash('Successfully logged in!', 'Login Success')
             session['user_id'] = user[0]
             session['username'] = user[1]
+            session['is_banned'] = user[4]
             if not is_admin:
                 session['is_admin'] = False
                 session['balance'] = virtualcurrency[1]
@@ -113,8 +114,8 @@ def signup():
         try:
             # Start transaction
             cursor.execute('BEGIN')
-            cursor.execute('INSERT INTO users (username, password,email,trx_address) VALUES (%s, %s,%s,%s)',
-                       (username, hashed_password, mail,new_account.address["base58"]))
+            cursor.execute('INSERT INTO users (username, password,email,trx_address,is_banned) VALUES (%s, %s,%s,%s)',
+                       (username, hashed_password, mail,new_account.address["base58"], False))
 
             cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
 
