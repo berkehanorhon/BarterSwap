@@ -1,29 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Chat{% endblock %}
+{% block title %}Conversations{% endblock %}
 {% block content %}
     <style>
         .message-container {
-        display: flex;
-        flex-direction: column;
-        width: 50%;
-        margin: auto;
-        flex-wrap: wrap;
-    }
-    .message {
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        background-color: #f8f8f8;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        max-width: 35%;
-        height: auto;
-        word-wrap: break-word;
-        white-space: normal;
-        overflow: visible;
-    }
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            margin: auto;
+            flex-wrap: wrap;
+        }
+        .message {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 35%;
+            height: auto;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow: visible;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
         .sender {
             font-weight: bold;
             color: #333;
@@ -48,11 +51,9 @@
         .message.other {
             justify-content: flex-end;
         }
-        form {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
         }
         textarea {
             width: 100%;
@@ -75,21 +76,16 @@
         input[type="submit"]:hover {
             background-color: #0056b3;
         }
-
-
     </style>
     <div class="message-container">
-        <h1>{{ username }}</h1>
+        <h1>Your Conversations</h1>
         {% for message in messages %}
-            <div class="message {{ 'user' if message[1] == session["user_id"] else 'other' }}">
-                <span class="content">{{ message[3] }}</span>
-                <span class="timestamp" id="timestamp-{{ loop.index }}">{{ message[4].strftime('%Y-%m-%dT%H:%M:%SZ') }}</span>
-            </div>
+            <a class="message {{ 'user' if message[2] == session['username'] else 'other' }}" href="{{ url_for('message_routes.get_user_messages', username=(message[2] if message[1] != session['user_id'] else message[4])) }}">
+                <span class="sender">{{ message[2] if message[1] != session['user_id'] else message[4] }}</span>
+                <span class="content">{{ message[2] }}: {{ message[5] }}</span>
+                <span class="timestamp" id="timestamp-{{ loop.index }}">{{ message[6].strftime('%Y-%m-%dT%H:%M:%SZ') }}</span>
+            </a>
         {% endfor %}
-        <form method="POST">
-            <textarea name="message" required></textarea>
-            <input type="submit" value="Send Message">
-        </form>
     </div>
     {% include 'flashmessages.html' %}
     {% block scripts %}
@@ -101,7 +97,10 @@
                     timestamp.textContent = utcDate.toLocaleString();
                 });
             };
+
+            function redirectToHome() {
+            window.location.href = "/";
+            }
         </script>
     {% endblock %}
-    {% include 'flashmessages.html' %}
 {% endblock %}
