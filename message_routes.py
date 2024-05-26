@@ -71,7 +71,7 @@ def get_users_last_messages():
                     JOIN
                         users receiver ON m.receiver_id = receiver.user_id
                     WHERE
-                        %s IN (m.sender_id, m.receiver_id);''', (session['user_id'],))
+                        %s IN (m.sender_id, m.receiver_id) ORDER BY m.send_time DESC;''', (session['user_id'],))
     messages = cursor.fetchall()
     conn.close()
     return render_template('messagebox.html', messages=messages)
