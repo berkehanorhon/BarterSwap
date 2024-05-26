@@ -1,12 +1,153 @@
 {% extends "base.html" %}
-{% block title %}{{ BarterSwap }}{% endblock %}
+{% block title %}Admin Home{% endblock %}
 {% block content %}
-    <div class="container">
-        <h1>Admin Home</h1>
-        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_users') }}">View All Users</a><br>
-        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_items') }}">View All Items</a><br>
-        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_transactions') }}">View All Transactions</a><br>
-        <a class="btn btn-primary" style="margin-bottom: 20px;" href="{{ url_for('admin_handlers.view_withdraw_requests') }}">View Withdraw Requests</a>
+
+    <!-- Theme style -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/css/adminlte.min.css">
+    <!-- AdminLTE App -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div class="wrapper sidebar-mini">
+        <!-- Main Sidebar Container -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <!-- Brand Logo -->
+            <a href="#" class="brand-link">
+                <span class="brand-text font-weight-light">Admin Panel</span>
+            </a>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Sidebar Menu -->
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_handlers.view_users') }}" class="nav-link">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>View All Users</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_handlers.view_items') }}" class="nav-link">
+                                <i class="nav-icon fas fa-box-open"></i>
+                                <p>View All Items</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_handlers.view_transactions') }}" class="nav-link">
+                                <i class="nav-icon fas fa-exchange-alt"></i>
+                                <p>View All Transactions</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_handlers.view_withdraw_requests') }}" class="nav-link">
+                                <i class="nav-icon fas fa-money-bill-wave"></i>
+                                <p>View Withdraw Requests</p>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- /.sidebar-menu -->
+            </div>
+            <!-- /.sidebar -->
+        </aside>
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1>Admin Panel</h1>
+                        </div>
+                    </div>
+                </div><!-- /.container-fluid -->
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="container-fluid">
+
+                    <!-- /.row -->
+                    <div class="row">
+                        <!-- Total Users Chart -->
+                        <div class="col-6">
+                            <canvas id="totalUsersChart"></canvas>
+                        </div>
+                        <!-- Total Items Chart -->
+                        <div class="col-6">
+                            <canvas id="totalItemsChart"></canvas>
+                        </div>
+                        <!-- Total Transactions Chart -->
+                        <div class="col-6">
+                            <canvas id="totalTransactionsChart"></canvas>
+                        </div>
+                        <!-- Total Withdraw Requests Chart -->
+                        <div class="col-6">
+                            <canvas id="totalWithdrawRequestsChart"></canvas>
+                        </div>
+                    </div>
+
+                        <script>
+                            // Total Users Chart
+                            new Chart(document.getElementById('totalUsersChart'), {
+                            type: 'bar',
+                            data: {
+                            labels: ['Total Users'],
+                            datasets: [{
+                            label: 'Total Users',
+                            data: [{{ stats['total_users'] }}],
+                            backgroundColor: 'rgb(75, 192, 192)',
+                        }]
+                        }
+                        });
+
+                            // Total Items Chart
+                            new Chart(document.getElementById('totalItemsChart'), {
+                            type: 'bar',
+                            data: {
+                            labels: ['Total Items'],
+                            datasets: [{
+                            label: 'Total Items',
+                            data: [{{ stats['total_items'] }}],
+                            backgroundColor: 'rgb(75, 192, 192)',
+                        }]
+                        }
+                        });
+
+                            // Total Transactions Chart
+                            new Chart(document.getElementById('totalTransactionsChart'), {
+                            type: 'bar',
+                            data: {
+                            labels: ['Total Transactions'],
+                            datasets: [{
+                            label: 'Total Transactions',
+                            data: [{{ stats['total_transactions'] }}],
+                            backgroundColor: 'rgb(75, 192, 192)',
+                        }]
+                        }
+                        });
+
+                            // Total Withdraw Requests Chart
+                            new Chart(document.getElementById('totalWithdrawRequestsChart'), {
+                            type: 'bar',
+                            data: {
+                            labels: ['Total Withdraw Requests'],
+                            datasets: [{
+                            label: 'Total Withdraw Requests',
+                            data: [{{ stats['total_withdraw_requests'] }}],
+                            backgroundColor: 'rgb(75, 192, 192)',
+                        }]
+                        }
+                        });
+                    </script>
+                </div>
+                <!-- /.container-fluid -->
+            </section>
+            <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
     </div>
 {% endblock %}
 {% include 'flashmessages.html' %}

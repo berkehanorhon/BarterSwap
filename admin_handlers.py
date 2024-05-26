@@ -8,10 +8,37 @@ import RunFirstSettings
 
 admin_handlers = Blueprint('admin_handlers', __name__, static_folder='static', template_folder='templates')
 
+def get_admin_stats():
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT COUNT(*) FROM users')
+    total_users = cursor.fetchone()[0]
+
+    cursor.execute('SELECT COUNT(*) FROM items')
+    total_items = cursor.fetchone()[0]
+
+    cursor.execute('SELECT COUNT(*) FROM transactions')
+    total_transactions = cursor.fetchone()[0]
+
+    cursor.execute('SELECT COUNT(*) FROM withdrawRequest')
+    total_withdraw_requests = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.close()
+
+    return {
+        'total_users': total_users,
+        'total_items': total_items,
+        'total_transactions': total_transactions,
+        'total_withdraw_requests': total_withdraw_requests
+    }
+
 @admin_handlers.route('/home')
 def home():
     if 'is_admin' in session and session['is_admin']:
-        return render_template("admin/adminhome.html")
+        stats = get_admin_stats()
+        return render_template("admin/adminhome.html",stats=stats)
     else:
         return redirect(url_for('home.home'))
 
