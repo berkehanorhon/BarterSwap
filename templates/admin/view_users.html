@@ -35,7 +35,7 @@
                     <li class="list-group-item">
                         <h3>{{ user[1] }}</h3>
                         <p>Mail: {{ user[3] }}</p>
-                        <button class="btn btn-primary" onclick="redirectToUser('{{ user[1] }}')">View Profile</button>
+                        <button class="btn btn-primary" onclick="redirectToUser('{{ user[0] }}')">View Profile</button>
                         <button class="btn btn-danger" onclick="banUser({{ user[0] }})">Ban User</button>
                     </li>
                 {% endfor %}
@@ -55,8 +55,8 @@
         </div>
     </div>
     <script>
-        function redirectToUser(username) {
-            window.location.href = "/user/profile/" + username ;
+        function redirectToUser(user_id) {
+            window.location.href = "/admin/view_user/" + user_id ;
         }
         function banUser(userId) {
             var confirmation = confirm("Are you sure you want to ban this user?");
