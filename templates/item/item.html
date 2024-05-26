@@ -46,7 +46,9 @@
                             </form>
                         {% endif %}
                         <button class="btn btn-primary" onclick="redirectToMessage('{{ seller }}')">Message Seller</button>
-
+                        {% if session["user_id"] == item[1] %}
+                            <a href="{{ url_for('item_handlers.edit_item', item_id=item[0])}}" class="btn btn-primary" style="position: absolute; top: 5px; right: 5px;">Edit Item</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

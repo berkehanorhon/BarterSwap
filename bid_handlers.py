@@ -80,7 +80,7 @@ def add_bid(item_id):
 
 @bid_handlers.route("/mybids", defaults={'page': 1})
 @bid_handlers.route("/mybids/<int:page>")
-def myitems(page):
+def mybids(page):
     if 'user_id' not in session:
         flash("You need to sign in first", "error")
         return redirect(url_for('user_handlers.signin'))
