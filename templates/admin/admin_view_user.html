@@ -30,6 +30,9 @@
             <li class="nav-item">
                 <a class="nav-link" id="items-tab" data-toggle="tab" href="#items" role="tab" aria-controls="items" aria-selected="false">Items</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#transactions" role="tab" aria-controls="transactions" aria-selected="true">Transactions</a>
+            </li>
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
@@ -132,6 +135,28 @@
                             <td>{{ item[0] }}</td>
                             <td>{{ item[1] }}</td>
                             <td>{{ item[2] }}</td>
+                            <!-- Add more data as needed -->
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Item id</th>
+                        <th scope="col">Buyer Id</th>
+                        <th scope="col">Date</th>
+                        <!-- Add more columns as needed -->
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction[0] }}</td>
+                            <td>{{ transaction[1] }}</td>
+                            <td>{{ transaction[2] }}</td>
                             <!-- Add more data as needed -->
                         </tr>
                     {% endfor %}

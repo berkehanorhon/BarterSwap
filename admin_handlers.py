@@ -108,9 +108,14 @@ def view_user(user_id):
     cursor.execute('SELECT * FROM items WHERE user_id = %s', (user_id,))
     items = cursor.fetchall()
 
+    # Get user transactions
+    # NEED UPDATE
+    cursor.execute('SELECT * FROM transactions WHERE buyer_id = %s', (user_id,))
+    transactions = cursor.fetchall()
+
     conn.close()
 
-    return render_template('admin/admin_view_user.html', user=user, bids=bids, deposits=deposits, withdraw_requests=withdraw_requests, items=items)
+    return render_template('admin/admin_view_user.html', user=user, bids=bids, deposits=deposits, withdraw_requests=withdraw_requests, items=items, transactions=transactions)
 
 ITEMS_PER_PAGE = 10
 
