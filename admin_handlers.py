@@ -34,6 +34,43 @@ def get_admin_stats():
         'total_withdraw_requests': total_withdraw_requests
     }
 
+def get_user_bids(user_id):
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM bids WHERE user_id = %s', (user_id, ))
+    bids = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return bids
+
+def get_user_deposits(user_id):
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM deposit WHERE user_id = %s', (user_id, ))
+    deposits = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return deposits
+
+def get_user_withdraw_requests(user_id):
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM withdrawRequest WHERE user_id = %s', (user_id, ))
+    withdraw_requests = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return withdraw_requests
+
+
 @admin_handlers.route('/home')
 def home():
     if 'is_admin' in session and session['is_admin']:
@@ -41,6 +78,44 @@ def home():
         return render_template("admin/adminhome.html",stats=stats)
     else:
         return redirect(url_for('home.home'))
+
+
+@admin_handlers.route('/view_user/<int:user_id>', methods=['GET'])
+def view_user(user_id):
+    if 'user_id' not in session or not session['is_admin']:
+        return redirect(url_for('user_handlers.signin'))
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Get user information
+    cursor.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
+    user = cursor.fetchone()
+
+    # Get user bids
+    cursor.execute('SELECT * FROM bids WHERE user_id = %s', (user_id,))
+    bids = cursor.fetchall()
+
+    # Get user deposits
+    cursor.execute('SELECT * FROM deposit WHERE user_id = %s', (user_id,))
+    deposits = cursor.fetchall()
+
+    # Get user withdraw requests
+    cursor.execute('SELECT * FROM withdrawRequest WHERE user_id = %s', (user_id,))
+    withdraw_requests = cursor.fetchall()
+
+    # Get user items
+    cursor.execute('SELECT * FROM items WHERE user_id = %s', (user_id,))
+    items = cursor.fetchall()
+
+    # Get user transactions
+    # NEED UPDATE
+    cursor.execute('SELECT * FROM transactions WHERE buyer_id = %s', (user_id,))
+    transactions = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('admin/admin_view_user.html', user=user, bids=bids, deposits=deposits, withdraw_requests=withdraw_requests, items=items, transactions=transactions)
 
 ITEMS_PER_PAGE = 10
 

@@ -23,7 +23,7 @@
                 {% for request in requests %}
                     <tr>
                         <td>{{ request[0] }}</td>
-                        <td>{{ request[1] }}</td>
+                        <td><a href="{{ url_for('admin_handlers.view_user', user_id=request[1]) }}">{{ request[1] }}</a></td>
                         <td>{{ request[2] }}</td>
                         <td>{{ request[3] }}</td>
                         <td>{{ request[4] }}</td>
