@@ -83,7 +83,7 @@ def view_transactions():
     cursor = conn.cursor()
 
     # Get all transactions
-    cursor.execute('SELECT * FROM Transactions')
+    cursor.execute('SELECT * FROM Transactions ORDER BY transaction_date DESC')
     transactions = cursor.fetchall()
 
     conn.close()
@@ -99,7 +99,7 @@ def view_withdraw_requests():
     cursor = conn.cursor()
 
     # Get all withdraw requests
-    cursor.execute('SELECT * FROM withdrawrequest')
+    cursor.execute('SELECT * FROM withdrawrequest ORDER BY withdraw_date DESC')
     requests = cursor.fetchall()
     print(requests)
     conn.close()
