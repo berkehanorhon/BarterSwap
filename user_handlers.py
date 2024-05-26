@@ -114,7 +114,7 @@ def signup():
             # Start transaction
             cursor.execute('BEGIN')
             cursor.execute('INSERT INTO users (username, password,email,trx_address) VALUES (%s, %s,%s,%s)',
-                (username, hashed_password, mail,new_account.address["base58"]))
+                       (username, hashed_password, mail,new_account.address["base58"]))
 
             cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
 

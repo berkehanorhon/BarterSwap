@@ -32,25 +32,21 @@ def home(page):
 
 @home_bp.route("/search", defaults={'page': 1}, methods=['GET'])
 @home_bp.route("/search/<int:page>", methods=['GET'])
-def search(page):
-    per_page = 10  # Change this as per your requirement
+def search(page, per_page=10):
     offset = (page - 1) * per_page
 
     query = request.args.get('query')
 
+    if query == "":
+        return redirect(url_for('home.home'))
+
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
+    cursor.execute("SELECT * FROM items WHERE title ILIKE %s ORDER BY item_id LIMIT %s OFFSET %s", ('%' + query + '%', per_page, offset))
 
-    cursor.execute('SELECT COUNT(*) FROM items WHERE title LIKE %s', ('%' + query + '%',))
-    total_items = cursor.fetchone()[0]
-    total_pages = math.ceil(total_items / per_page)
-
-    if page <= 0 or page > total_pages:
-        return render_template('404.html')
-
-    cursor.execute('SELECT * FROM items WHERE title LIKE %s ORDER BY item_id LIMIT %s OFFSET %s', ('%' + query + '%', per_page, offset))
     items = cursor.fetchall()
-
+    total_items = len(items)
+    total_pages = math.ceil(total_items / per_page)
     conn.close()
 
     return render_template('home.html', items=items, search=query, total_pages=total_pages+1, current_page=page)

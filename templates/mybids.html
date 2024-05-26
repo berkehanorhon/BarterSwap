@@ -26,10 +26,10 @@
     </style>
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <h2 class="text-center mb-4">All Items</h2>
+            <h2 class="text-center mb-4">Your Bids</h2>
 
             <div class="mb-3">
-                <form action="{{ url_for('home.search', searchitem=query) }}" method="GET">
+                <form action="{{ url_for('bid_handlers.search', searchitem=query) }}" method="GET">
                     <div class="input-group">
                         <input type="text" class="form-control" placeholder="Search..." name="query">
                         <button class="btn btn-outline-secondary" type="submit">Search</button>
@@ -44,11 +44,13 @@
                         <h3>{{ item[2] }}</h3>
                         <p>Description: {{ item[3] }}</p>
                         <p>Current Price: ${{ item[6] }}</p>
+                        <p>Your Bid: ${{ item[12] }}</p>
+                        <p>Your Bidding Date: {{ item[13].strftime("%Y-%m-%d %H:%M:%S") }}</p>
                         <button class="btn btn-primary" onclick="redirectToItem({{ item[0] }})">View Item</button>
                     </li>
                 {% endfor %}
                 {% if items|length == 0 and search %}
-                    <button class="btn btn-primary" onclick="redirectToHome()">No items found. Go back to home</button>
+                    <button class="btn btn-primary" onclick="redirectToHome()">No bids found. Go back to your bids.</button>
                 {% endif %}
             </ul>
 
@@ -57,7 +59,7 @@
                     {% if page_num == current_page %}
                         <a class="active" href="#">{{ page_num }}</a>
                     {% else %}
-                        <a href="{{ url_for('home.home', page=page_num) }}">{{ page_num }}</a>
+                        <a href="{{ url_for('bid_handlers.myitems', page=page_num) }}">{{ page_num }}</a>
                     {% endif %}
                 {% endfor %}
             </div>
@@ -70,7 +72,7 @@
             window.location.href = "/items/" + itemId;
         }
         function redirectToHome() {
-            window.location.href = "/";
+            window.location.href = "/items/bid/mybids";
         }
     </script>
 {% endblock %}
