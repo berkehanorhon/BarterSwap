@@ -129,14 +129,35 @@ def process_expired_auctions():
     cur.close()
     conn.close()
 
+def process_transactions():
+    print("Transaction2 executed!")
+    conn = RunFirstSettings.create_connection()
+    cur = conn.cursor()
+    check_time = get_current_time() + timedelta(hours=24)
+    for _ in range(MAX_TRANSACTION_RETRY_COUNT):
+        try:
+            cur.execute("UPDATE Transactions SET transaction_status = 1 WHERE transaction_date > %s AND transaction_status = 0", (check_time, ))
+            conn.commit()
+            print("Transactions have been processed and closed successfully!")
+            break
+
+        except Exception as e:
+            conn.rollback()
+            print(f"An error occurred at Transactions transaction: {e}")
+
+    cur.close()
+    conn.close()
 
 def create_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(process_expired_auctions, 'cron', second='0')
-    #scheduler.add_job(dump_database, 'interval', seconds=10)
     return scheduler
 
-
+def create_scheduler_transactions():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(process_transactions)
+    scheduler.add_job(process_transactions, 'interval', minutes=5)
+    return scheduler
 
 def add_bidding_func():
     conn = RunFirstSettings.create_connection()
