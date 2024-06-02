@@ -41,12 +41,12 @@
             <ul class="list-group">
                 {% for item in items %}
                     <li class="list-group-item">
-                        <h3>{{ item[2] }}</h3>
-                        <p>Description: {{ item[3] }}</p>
-                        <p>Current Price: ${{ item[6] }}</p>
-                        <p>Your Bid: ${{ item[12] }}</p>
-                        <p>Your Bidding Date: {{ item[13].strftime("%Y-%m-%d %H:%M:%S") }}</p>
-                        <button class="btn btn-primary" onclick="redirectToItem({{ item[0] }})">View Item</button>
+                        <h3>{{ item[0] }}</h3>
+                        <p>Description: {{ item[1] }}</p>
+                        <p>Current Price: ${{ item[2] }}</p>
+                        <p>Your Bid: ${{ item[3] }}</p>
+                        <p>Your Bidding Date: {{ item[4].strftime("%Y-%m-%d %H:%M:%S") }}</p>
+                        <button class="btn btn-primary" onclick="redirectToItem({{ item[5] }})">View Item</button>
                     </li>
                 {% endfor %}
                 {% if items|length == 0 and search %}

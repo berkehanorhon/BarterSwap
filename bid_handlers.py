@@ -3,6 +3,7 @@ import RunFirstSettings
 import barterswap
 import math
 import psycopg2
+import time
 
 bid_handlers = Blueprint('bid_handlers', __name__, static_folder='static', template_folder='templates')
 
@@ -33,27 +34,28 @@ def add_bid(item_id):
 
     cursor.execute('SELECT current_price FROM items WHERE item_id = %s', (item_id,))
     current_price = float(cursor.fetchone()[0])
-    if (current_price + 1.0) >= bid_amount:
+    if (current_price + 1.0) > bid_amount:
         flash("Your bid must be higher than the current price by at least 1.0", "error")
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
 
     cursor.execute('SELECT user_id FROM bids WHERE item_id = %s ORDER BY bid_amount DESC LIMIT 1', (item_id,))
-    last_bidder_id = cursor.fetchone()[0]
+    last_bidder_id = cursor.fetchone()
 
-    if last_bidder_id == user_id:
+    if last_bidder_id and last_bidder_id[0] == user_id:
         flash("Highest bid is already yours!", "error")
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
 
-    time_diff = (end_time - now).total_seconds() * 1000
-    timeout = 4000 if time_diff < 5000 else (int(time_diff) if time_diff <= 10000 else 10000)
-
+    time_diff = (has_an_auction[0] - now).total_seconds() * 1000
+    timeout = 4000 if time_diff < 5000 else (int(time_diff) if time_diff < 10000 else 10000)
+    start_time = time.time()
     try:
         cursor.execute('BEGIN')
-        cursor.execute('SET LOCAL statement_timeout = %s', (timeout,))  # 5000 ms timeout
+        cursor.execute('SET LOCAL statement_timeout = %s', (timeout,))
 
-        # Call the PL/pgSQL function
+        # Call function
         cursor.execute('SELECT add_bid_function(%s, %s, %s, %s)', (item_id, bid_amount, user_id, now))
-
+        if (time.time() - start_time) > (timeout / 1000):
+            raise psycopg2.Error('Timeout Error!')
         conn.commit()
     except psycopg2.Error as e:
         conn.rollback()
@@ -84,7 +86,7 @@ def mybids(page):
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT items.*, bids.* FROM items JOIN bids ON items.item_id = bids.item_id WHERE bids.user_id = %s ORDER BY bids.bid_date DESC', (session['user_id'], ))
+    cursor.execute('SELECT items.title,items.description,items.current_price,bids.bid_amount,bids.bid_date,items.item_id FROM items JOIN bids ON items.item_id = bids.item_id WHERE bids.user_id = %s ORDER BY bids.bid_date DESC LIMIT %s OFFSET %s', (session['user_id'],per_page,offset))
     items = cursor.fetchall()
     total_items = len(items)
     total_pages = math.ceil(total_items / per_page)

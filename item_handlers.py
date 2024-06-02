@@ -59,7 +59,8 @@ def get_item(item_id):
     # REWRITE WITH BIDS
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM items WHERE item_id = %s AND (is_active = True OR user_id = %s)', (item_id,session['user_id']))
+    user_id = session['user_id'] if 'user_id' in session else None
+    cursor.execute('SELECT * FROM items WHERE item_id = %s AND (is_active = True OR user_id = %s)', (item_id,user_id))
     item = cursor.fetchone()
     if not item:
         return render_template('404.html')
@@ -68,7 +69,7 @@ def get_item(item_id):
     seller = cursor.fetchone()[0]
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
     cursor.execute('''
-        SELECT bids.*, users.username 
+        SELECT bids.bid_amount,bids.bid_date, users.username 
         FROM bids 
         INNER JOIN users ON bids.user_id = users.user_id 
         WHERE bids.item_id = %s 
@@ -76,9 +77,10 @@ def get_item(item_id):
         LIMIT 3
     ''', (item_id,))
     bids = cursor.fetchall()
-    cursor.execute('SELECT end_time FROM auctions where item_id = %s and is_active = True', (item_id,))
+    cursor.execute('SELECT end_time,is_active FROM auctions where item_id = %s', (item_id,))
     end_time = cursor.fetchone()
     conn.close()
+    print(end_time)
     end_time = end_time[0].isoformat() if end_time else end_time
     return render_template('item/item.html', item=tuple(item), bids=bids, seller=seller, end_time=end_time)
 

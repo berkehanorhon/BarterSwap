@@ -200,7 +200,7 @@ def user_profile_edit(username):
                                                               barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
             cursor.execute(
                 'UPDATE users SET username = %s, email = %s, avatar_url = %s WHERE username = %s',
-                (new_username, email, random_filename, username))
+                (new_username, email, random_filename if random_filename else "default.png", username))
             conn.commit()
         else:
             cursor.execute(
