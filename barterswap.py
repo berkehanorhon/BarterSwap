@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timedelta
 import RunFirstSettings
 from apscheduler.schedulers.background import BackgroundScheduler
+import psycopg2
 
 max_content_length = 5 * 1024 * 1024
 ALLOWED_ADDITEM_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/jpg'}
@@ -54,7 +55,7 @@ def process_expired_auctions():
             cur.execute('BEGIN')
 
             # Select expired auctions
-            cur.execute('SELECT * FROM auctions WHERE end_time <= %s AND is_active = True', (now,))
+            cur.execute('SELECT item_id FROM auctions WHERE end_time <= %s AND is_active = True', (now,))
             expired_auctions = cur.fetchall()
 
             # For each expired auction, check if there are any bids
@@ -88,6 +89,7 @@ def process_expired_auctions():
     cur.close()
     conn.close()
 
+
 def load_db_config():
     with open('settings.yaml', 'r') as file:
         config = yaml.safe_load(file)
@@ -108,11 +110,126 @@ def dump_database():
         print("Database dump successful.")
     except subprocess.CalledProcessError as e:
         print(f"Database dump failed: {str(e)}")
+
+def process_expired_auctionsv2(): # TODO !!!!
+    print("Transaction executed!")
+    conn = RunFirstSettings.create_connection()
+    cur = conn.cursor()
+    now = get_current_time()
+    for _ in range(MAX_TRANSACTION_RETRY_COUNT):
+        try:
+            # Start a new transaction
+            cur.execute('BEGIN')
+
+            # SQL query to handle the entire process in the database
+            cur.execute("""
+                WITH expired_auctions AS (
+                    SELECT item_id
+                    FROM auctions
+                    WHERE end_time <= %s AND is_active = TRUE
+                ),
+                highest_bids AS (
+                    SELECT item_id, user_id AS buyer_id
+                    FROM Bids
+                    WHERE item_id IN (SELECT item_id FROM expired_auctions)
+                    ORDER BY bid_amount DESC
+                ),
+                new_transactions AS (
+                    SELECT DISTINCT ON (hb.item_id) 
+                        hb.item_id, 
+                        hb.buyer_id, 
+                        %s AS transaction_date
+                    FROM highest_bids hb
+                    LEFT JOIN Transactions t ON hb.item_id = t.item_id
+                    WHERE t.item_id IS NULL
+                ),
+                update_auctions AS (
+                    UPDATE auctions
+                    SET is_active = FALSE
+                    WHERE item_id IN (SELECT item_id FROM expired_auctions)
+                    RETURNING item_id
+                )
+                INSERT INTO Transactions (item_id, buyer_id, transaction_date)
+                SELECT item_id, buyer_id, transaction_date
+                FROM new_transactions;
+                RETURNING (SELECT count(1) FROM expired_auctions);
+            """, (now, now))
+
+            # Commit the transaction
+            conn.commit()
+            print("Auctions have been processed and closed successfully!")
+            break  # If commit was successful, break the retry loop
+
+        except Exception as e:
+            # If an error occurs, rollback the transaction
+            conn.rollback()
+            print(f"An error occurred at auction transaction: {e}")
+
+    cur.close()
+    conn.close()
+
+
 def create_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(process_expired_auctions, 'cron', second='0')
     #scheduler.add_job(dump_database, 'interval', seconds=10)
     return scheduler
+
+
+
+def add_bidding_func():
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """CREATE OR REPLACE FUNCTION add_bid_function(given_item_id INT, new_bid_amount NUMERIC, given_user_id INT, now TIMESTAMP) RETURNS VOID AS $$
+    DECLARE
+        last_bid RECORD;
+    BEGIN
+        -- İtemi kilitle
+        PERFORM 1
+        FROM items
+        WHERE items.item_id = given_item_id
+        FOR UPDATE;
+        
+        -- Satırı kilitle
+        SELECT * INTO last_bid
+        FROM bids
+        WHERE bids.item_id = given_item_id
+        ORDER BY bid_amount DESC
+        LIMIT 1
+        FOR UPDATE;
+
+        -- Eğer son teklif null değilse
+        IF last_bid IS NOT NULL THEN
+            -- Eğer son teklif geri ödenmişse veya son teklif yeni teklifle aynı veya daha yüksekse hata fırlat
+            IF last_bid.refunded OR last_bid.bid_amount >= new_bid_amount THEN
+                RAISE EXCEPTION 'New bids on the item!' USING ERRCODE = 'B0001';
+            END IF;
+            -- Önceki teklif verenin bakiyesini güncelle
+            UPDATE virtualcurrency
+            SET balance = balance + last_bid.bid_amount
+            WHERE user_id = last_bid.user_id;
+        END IF;
+
+        -- Yeni teklif verenin bakiyesini güncelle
+        UPDATE virtualcurrency
+        SET balance = balance - new_bid_amount
+        WHERE user_id = given_user_id;
+
+        -- İtemin mevcut fiyatını güncelle
+        UPDATE items
+        SET current_price = new_bid_amount
+        WHERE items.item_id = given_item_id;
+
+        -- Yeni teklifi ekle
+        INSERT INTO bids (user_id, item_id, bid_amount, bid_date, refunded)
+        VALUES (given_user_id, given_item_id, new_bid_amount, now, FALSE);
+    END;
+    $$ LANGUAGE plpgsql;"""
+    )
+    conn.commit()
+    conn.close()
+    return True
 
 def start_database():
     conn = RunFirstSettings.create_connection()

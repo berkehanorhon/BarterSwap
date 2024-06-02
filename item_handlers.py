@@ -152,7 +152,7 @@ def myitems(page):
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT * from items where user_id = %s ORDER BY item_id LIMIT %s OFFSET %s', (session['user_id'], per_page, offset))
+    cursor.execute('SELECT * from items where user_id = %s ORDER BY item_id DESC LIMIT %s OFFSET %s', (session['user_id'], per_page, offset))
     items = cursor.fetchall()
     total_items = len(items)
     total_pages = math.ceil(total_items / per_page)
@@ -175,7 +175,7 @@ def search(page, per_page=10):
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM items WHERE user_id = %s and title ILIKE %s ORDER BY item_id LIMIT %s OFFSET %s", (session["user_id"], '%' + query + '%', per_page, offset))
+    cursor.execute("SELECT * FROM items WHERE user_id = %s and title ILIKE %s ORDER BY item_id DESC LIMIT %s OFFSET %s", (session["user_id"], '%' + query + '%', per_page, offset))
 
     items = cursor.fetchall()
     total_items = len(items)

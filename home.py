@@ -24,7 +24,7 @@ def home(page):
     if page <= 0 or page > total_pages:
         return render_template('404.html')
 
-    cursor.execute('SELECT * FROM items ORDER BY item_id LIMIT %s OFFSET %s', (per_page, offset))
+    cursor.execute('SELECT * FROM items ORDER BY item_id DESC LIMIT %s OFFSET %s', (per_page, offset))
     items = cursor.fetchall()
     conn.close()
 
@@ -42,7 +42,7 @@ def search(page, per_page=10):
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM items WHERE title ILIKE %s ORDER BY item_id LIMIT %s OFFSET %s", ('%' + query + '%', per_page, offset))
+    cursor.execute("SELECT * FROM items WHERE title ILIKE %s ORDER BY item_id DESC LIMIT %s OFFSET %s", ('%' + query + '%', per_page, offset))
 
     items = cursor.fetchall()
     total_items = len(items)
