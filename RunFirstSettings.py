@@ -16,3 +16,8 @@ def create_connection():
         port=db_config['port']
     )
     return conn
+
+def get_password():
+    with open("settings.yaml", 'r') as stream:
+        config = yaml.safe_load(stream)
+    return config['private_hash']['password']
