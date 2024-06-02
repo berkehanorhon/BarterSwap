@@ -134,9 +134,10 @@ def process_transactions():
     conn = RunFirstSettings.create_connection()
     cur = conn.cursor()
     check_time = get_current_time() + timedelta(hours=24)
+    print(check_time)
     for _ in range(MAX_TRANSACTION_RETRY_COUNT):
         try:
-            cur.execute("UPDATE Transactions SET transaction_status = 1 WHERE transaction_date > %s AND transaction_status = 0", (check_time, ))
+            cur.execute("UPDATE Transactions SET transaction_status = 1 WHERE transaction_date < %s AND transaction_status = 0", (check_time, ))
             conn.commit()
             print("Transactions have been processed and closed successfully!")
             break
