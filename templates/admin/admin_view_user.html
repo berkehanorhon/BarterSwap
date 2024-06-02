@@ -42,14 +42,13 @@
                         <th scope="col">User ID</th>
                         <th scope="col">Username</th>
                         <th scope="col">Email</th>
-                        <!-- Add more columns as needed -->
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
                         <td>{{ user[0] }}</td>
                         <td>{{ user[1] }}</td>
-                        <td>{{ user[3] }}</td>
+                        <td>{{ user[2] }}</td>
                         <!-- Add more data as needed -->
                     </tr>
                     </tbody>
@@ -59,7 +58,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th scope="col">Bid ID</th>
+                            <th scope="col">User ID</th>
                             <th scope="col">Item ID</th>
                             <th scope="col">Bid Amount</th>
                             <th scope="col">Bid Date</th>
@@ -71,7 +70,7 @@
                                 <td>{{ bid[0] }}</td>
                                 <td>{{ bid[1] }}</td>
                                 <td>{{ bid[2] }}</td>
-                                <td>{{ bid[3] }}</td>
+                                <td>{{ bid[3].strftime("%Y-%m-%d %H:%M:%S") }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -91,7 +90,7 @@
                             <tr>
                                 <td>{{ deposit[0] }}</td>
                                 <td>{{ deposit[1] }}</td>
-                                <td>{{ deposit[2] }}</td>
+                                <td>{{ deposit[2].strftime("%Y-%m-%d %H:%M:%S") }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

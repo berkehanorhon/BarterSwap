@@ -34,42 +34,6 @@ def get_admin_stats():
         'total_withdraw_requests': total_withdraw_requests
     }
 
-def get_user_bids(user_id):
-    conn = RunFirstSettings.create_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM bids WHERE user_id = %s', (user_id, ))
-    bids = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return bids
-
-def get_user_deposits(user_id):
-    conn = RunFirstSettings.create_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM deposit WHERE user_id = %s', (user_id, ))
-    deposits = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return deposits
-
-def get_user_withdraw_requests(user_id):
-    conn = RunFirstSettings.create_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM withdrawRequest WHERE user_id = %s', (user_id, ))
-    withdraw_requests = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return withdraw_requests
-
 
 @admin_handlers.route('/home')
 def home():
@@ -89,28 +53,28 @@ def view_user(user_id):
     cursor = conn.cursor()
 
     # Get user information
-    cursor.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT user_id,username,email FROM users WHERE user_id = %s', (user_id,))
     user = cursor.fetchone()
 
     # Get user bids
-    cursor.execute('SELECT * FROM bids WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT user_id,item_id,bid_amount,bid_date FROM bids WHERE user_id = %s', (user_id,))
     bids = cursor.fetchall()
 
     # Get user deposits
-    cursor.execute('SELECT * FROM deposit WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT deposit_id,deposit_amount,deposit_date FROM deposit WHERE user_id = %s', (user_id,))
     deposits = cursor.fetchall()
 
     # Get user withdraw requests
-    cursor.execute('SELECT * FROM withdrawRequest WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT withdraw_id,withdraw_amount,withdraw_date,req_state FROM withdrawRequest WHERE user_id = %s', (user_id,))
     withdraw_requests = cursor.fetchall()
 
     # Get user items
-    cursor.execute('SELECT * FROM items WHERE user_id = %s', (user_id,))
+    cursor.execute('SELECT item_id,title,description FROM items WHERE user_id = %s', (user_id,))
     items = cursor.fetchall()
 
     # Get user transactions
     # NEED UPDATE
-    cursor.execute('SELECT * FROM transactions WHERE buyer_id = %s', (user_id,))
+    cursor.execute('SELECT item_id,buyer_id,transaction_date FROM transactions WHERE buyer_id = %s', (user_id,))
     transactions = cursor.fetchall()
 
     conn.close()
@@ -139,7 +103,7 @@ def view_users(page):
     if page <= 0 or page > total_pages:
         return render_template('404.html')
 
-    cursor.execute('SELECT * FROM users ORDER BY user_id LIMIT %s OFFSET %s', ( per_page, offset))
+    cursor.execute('SELECT user_id,username,email FROM users ORDER BY user_id LIMIT %s OFFSET %s', ( per_page, offset))
     users = cursor.fetchall()
 
     conn.close()
@@ -167,7 +131,7 @@ def view_items(page):
     if page <= 0 or page > total_pages:
         return render_template('404.html')
 
-    cursor.execute('SELECT * FROM items  ORDER BY item_id LIMIT %s OFFSET %s', (per_page, offset))
+    cursor.execute('SELECT item_id,title,description FROM items  ORDER BY item_id LIMIT %s OFFSET %s', (per_page, offset))
     items = cursor.fetchall()
 
     conn.close()
@@ -185,7 +149,7 @@ def view_transactions():
     cursor = conn.cursor()
 
     # Get all transactions
-    cursor.execute('SELECT * FROM Transactions ORDER BY transaction_date DESC')
+    cursor.execute('SELECT item_id,buyer_id,transaction_date FROM Transactions ORDER BY transaction_date DESC')
     transactions = cursor.fetchall()
 
     conn.close()
