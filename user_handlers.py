@@ -9,8 +9,7 @@ full_node = HttpProvider('https://api.trongrid.io')
 solidity_node = HttpProvider('https://api.trongrid.io')
 event_server = 'https://api.trongrid.io'
 
-tron = Tron(full_node=full_node,solidity_node=solidity_node,event_server=event_server)
-
+tron = Tron(full_node=full_node, solidity_node=solidity_node, event_server=event_server)
 
 user_handlers = Blueprint('user_handlers', __name__, static_folder='static', template_folder='templates')
 
@@ -40,7 +39,8 @@ def signin():
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
 
-        cursor.execute('SELECT user_id, username, password, is_admin, is_banned FROM users WHERE username = %s', (username,))
+        cursor.execute('SELECT user_id, username, password, is_admin, is_banned FROM users WHERE username = %s',
+                       (username,))
         user = cursor.fetchone()
 
         # If user is none, then the username is not in the database
@@ -114,10 +114,12 @@ def signup():
         try:
             # Start transaction
             cursor.execute('BEGIN')
-            cursor.execute('INSERT INTO users (username, password,email,trx_address,is_banned,student_id,avatar_url) VALUES (%s,%s,%s,%s,%s,%s,%s)',
-                       (username, hashed_password, mail,new_account.address["base58"],False,student_id,"default.png"))
+            cursor.execute(
+                'INSERT INTO users (username, password,email,trx_address,is_banned,student_id,avatar_url) VALUES (%s,%s,%s,%s,%s,%s,%s)',
+                (username, hashed_password, mail, new_account.address["base58"], False, student_id, "default.png"))
 
-            cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
+            cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",
+                           (new_account.address["base58"], new_account.public_key, new_account.private_key))
 
             cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
             user_id = cursor.fetchone()
@@ -125,10 +127,10 @@ def signup():
 
             # Commit transaction
             conn.commit()
-        except Exception as e:
+        except Exception:
             # Rollback transaction in case of error
             conn.rollback()
-            flash(str(e), "signup error")
+            flash("Unknown error", "signup error")
             return render_template('signup.html')
         finally:
             conn.close()
@@ -194,15 +196,12 @@ def user_profile_edit(username):
             return render_template('404.html')
         # print('is_new_image' in request.form and request.form['is_new_image'] == 'on')
         if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
-            try:  # TODO bu try except silinecek
-                random_filename = barterswap.upload_and_give_name('static/avatars', request.files['image'],
-                                                                  barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
-                cursor.execute(
-                    'UPDATE users SET username = %s, email = %s, avatar_url = %s WHERE username = %s',
-                    (new_username, email, random_filename, username))
-                conn.commit()
-            except Exception as e:
-                print(e, 54321)
+            random_filename = barterswap.upload_and_give_name('static/avatars', request.files['image'],
+                                                              barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
+            cursor.execute(
+                'UPDATE users SET username = %s, email = %s, avatar_url = %s WHERE username = %s',
+                (new_username, email, random_filename, username))
+            conn.commit()
         else:
             cursor.execute(
                 'UPDATE users SET username = %s, email = %s WHERE username = %s',

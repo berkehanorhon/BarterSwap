@@ -17,12 +17,11 @@ def home(page):
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(*) FROM items')
-    total_items = cursor.fetchone()[0]
-    total_pages = math.ceil(total_items / per_page)
 
-    cursor.execute('SELECT * FROM items ORDER BY item_id DESC LIMIT %s OFFSET %s', (per_page, offset))
+    cursor.execute('SELECT * FROM items WHERE is_active = True ORDER BY item_id DESC LIMIT %s OFFSET %s', (per_page, offset))
     items = cursor.fetchall()
+    total_items = len(items)
+    total_pages = math.ceil(total_items / per_page)
     conn.close()
 
     return render_template('home.html', items=items, total_pages=total_pages+1, current_page=page)

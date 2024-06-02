@@ -25,12 +25,8 @@ def add_item():
         price = request.form['price']
         category = request.form['category']
         condition = request.form['condition']
-        random_filename = None
-        try:  # TODO bu try except silinecek
-            random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
-                                                              barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
-        except Exception as e:
-            print(e, 12345)
+        random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                          barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
         # ADD FLASH FEATURE IN THE FUTURE
         if len(name) > 100:
             # flash("Item name cannot exceed 100 characters", "error")
@@ -81,7 +77,7 @@ def get_item(item_id):
     end_time = cursor.fetchone()
     conn.close()
     end_time = end_time[0].isoformat() if end_time else end_time
-    return render_template('item/item.html', item=tuple(item), bids=bids, seller = seller, end_time = end_time)
+    return render_template('item/item.html', item=tuple(item), bids=bids, seller=seller, end_time=end_time)
 
 
 @item_handlers.route('/<int:item_id>/edit', methods=['GET', 'POST'])
@@ -112,15 +108,12 @@ def edit_item(item_id):
         # category = request.form['category']
         # condition = request.form['condition']
         if 'is_new_image' in request.form and request.form['is_new_image'] == 'on':
-            try:  # TODO bu try except silinecek
-                random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
-                                                                  barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
-                cursor.execute(
-                    'UPDATE items SET title = %s, description = %s, image_url = %s WHERE item_id = %s',
-                    (name, description, random_filename, item_id))
-                conn.commit()
-            except Exception as e:
-                print(e, 54321)
+            random_filename = barterswap.upload_and_give_name('static/images', request.files['image'],
+                                                              barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
+            cursor.execute(
+                'UPDATE items SET title = %s, description = %s, image_url = %s WHERE item_id = %s',
+                (name, description, random_filename, item_id))
+            conn.commit()
         else:
             cursor.execute(
                 'UPDATE items SET title = %s, description = %s WHERE item_id = %s',
@@ -139,6 +132,7 @@ def edit_item(item_id):
         return render_template('item/edititem.html', item=item, max_content_length=barterswap.max_content_length,
                                ALLOWED_IMAGE_TYPES=barterswap.ALLOWED_ADDITEM_IMAGE_TYPES)
 
+
 @item_handlers.route("/myitems", defaults={'page': 1})
 @item_handlers.route("/myitems/<int:page>")
 def myitems(page):
@@ -152,13 +146,15 @@ def myitems(page):
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT * from items where user_id = %s ORDER BY item_id DESC LIMIT %s OFFSET %s', (session['user_id'], per_page, offset))
+    cursor.execute('SELECT * from items where user_id = %s ORDER BY item_id DESC LIMIT %s OFFSET %s',
+                   (session['user_id'], per_page, offset))
     items = cursor.fetchall()
     total_items = len(items)
     total_pages = math.ceil(total_items / per_page)
     conn.close()
 
     return render_template('myitems.html', items=items, total_pages=total_pages + 1, current_page=page)
+
 
 @item_handlers.route("/myitems/search", defaults={'page': 1}, methods=['GET'])
 @item_handlers.route("/myitems/<int:page>", methods=['GET'])
@@ -175,11 +171,12 @@ def search(page, per_page=10):
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM items WHERE user_id = %s and title ILIKE %s ORDER BY item_id DESC LIMIT %s OFFSET %s", (session["user_id"], '%' + query + '%', per_page, offset))
+    cursor.execute("SELECT * FROM items WHERE user_id = %s and title ILIKE %s ORDER BY item_id DESC LIMIT %s OFFSET %s",
+                   (session["user_id"], '%' + query + '%', per_page, offset))
 
     items = cursor.fetchall()
     total_items = len(items)
     total_pages = math.ceil(total_items / per_page)
     conn.close()
 
-    return render_template('myitems.html', items=items, search=query, total_pages=total_pages+1, current_page=page)
+    return render_template('myitems.html', items=items, search=query, total_pages=total_pages + 1, current_page=page)

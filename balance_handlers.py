@@ -70,7 +70,7 @@ def withdraw():  # TODO Transactional withdraw implementation
                     conn.commit()
                     flash('The TRX address is valid and the withdraw request is successful.', 'success')
 
-                except Exception as e:
+                except Exception:
                     # Rollback işlemi
                     conn.rollback()
                     flash('An error occurred while processing the withdrawal.', 'error')
