@@ -62,20 +62,23 @@ def approve(item_id, buyer_id):
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute('BEGIN')
-    cursor.execute('SELECT * FROM transactions WHERE item_id = %s and buyer_id = %s and transaction_status = 1 FOR UPDATE', (item_id, buyer_id))
-    transaction = cursor.fetchone()
-    if not transaction:
+    try:
+        cursor.execute('BEGIN')
+        cursor.execute('SELECT 1 FROM transactions WHERE item_id = %s and buyer_id = %s and transaction_status = 1 FOR UPDATE', (item_id, buyer_id))
+        transaction = cursor.fetchone()
+        if not transaction:
+            raise Exception("Transaction not found!")
+        cursor.execute('UPDATE transactions SET transaction_status = 2 WHERE item_id = %s and buyer_id = %s and transaction_status = 1', (item_id, buyer_id))
+        cursor.execute('SELECT current_price, user_id FROM items WHERE item_id = %s FOR UPDATE', (item_id,))
+        current_price, seller_id = cursor.fetchone()
+        cursor.execute('SELECT 1 FROM virtualcurrency WHERE user_id = %s FOR UPDATE', (seller_id,))
+        cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s', (current_price, seller_id))
+        conn.commit()
+    except Exception:
         conn.rollback()
         conn.close()
         flash("An error occurred while approving the transaction!", "error")
         return redirect(url_for('transaction_handlers.mytransactions'))
-    cursor.execute('UPDATE transactions SET transaction_status = 2 WHERE item_id = %s and buyer_id = %s and transaction_status = 1', (item_id, buyer_id))
-    cursor.execute('SELECT current_price, user_id FROM items WHERE item_id = %s FOR UPDATE', (item_id,))
-    current_price, seller_id = cursor.fetchone()
-    cursor.execute('SELECT 1 FROM virtualcurrency WHERE user_id = %s FOR UPDATE', (seller_id,))
-    cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s', (current_price, seller_id))
-    conn.commit()
     conn.close()
     flash("Transaction approved successfully!", "success")
     return redirect(url_for('transaction_handlers.mytransactions'))
