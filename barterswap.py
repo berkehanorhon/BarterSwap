@@ -263,6 +263,7 @@ def start_database():
                 '(item_id INT PRIMARY KEY,'
                 ' buyer_id INT NOT NULL,'
                 ' transaction_date TIMESTAMP NOT NULL,'
+                ' transaction_status SMALLINT DEFAULT 0 NOT NULL,'
                 ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE,'
                 ' FOREIGN KEY (buyer_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
 
