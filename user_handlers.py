@@ -202,11 +202,11 @@ def user_profile(username):
         return render_template('404.html')
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+    cursor.execute('SELECT user_id,username,email,student_id,reputation,avatar_url FROM users WHERE username = %s', (username,))
     user = cursor.fetchone()
     if not user:
         return render_template('404.html')
-    cursor.execute('SELECT * FROM items WHERE user_id = %s AND is_active = True', (user[0],))
+    cursor.execute('SELECT item_id,title,description,starting_price FROM items WHERE user_id = %s AND is_active = True', (user[0],))
     items = cursor.fetchall()
     conn.close()
 
