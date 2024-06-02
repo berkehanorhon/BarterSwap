@@ -57,6 +57,8 @@ def withdraw():  # TODO Transactional withdraw implementation
                     # Transaction başlat
                     cursor.execute('BEGIN')
 
+                    cursor.execute('SELECT 1 FROM virtualcurrency WHERE user_id = %s FOR UPDATE', (user_id,))
+
                     # Insert a record into the withdrawRequest table with 'Pending' state
                     cursor.execute(
                         'INSERT INTO withdrawRequest (user_id, withdraw_amount, req_state, trx_address) VALUES (%s, %s, %s, %s)',
