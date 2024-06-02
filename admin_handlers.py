@@ -198,9 +198,13 @@ def reject_withdraw():
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
 
+    cursor.execute('BEGIN')
+
     # Get the amount and user_id of the withdraw request
-    cursor.execute('SELECT user_id, withdraw_amount FROM withdrawrequest WHERE withdraw_id = %s', (withdraw_id,))
+    cursor.execute('SELECT user_id, withdraw_amount FROM withdrawrequest WHERE withdraw_id = %s FOR UPDATE', (withdraw_id,))
     user_id, amount = cursor.fetchone()
+
+    cursor.execute('SELECT 1 FROM virtualcurrency WHERE user_id = %s FOR UPDATE', (user_id,))
 
     # Update the status of the withdraw request in the database
     cursor.execute('UPDATE withdrawrequest SET req_state = %s WHERE withdraw_id = %s', ('Rejected', withdraw_id))
