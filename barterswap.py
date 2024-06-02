@@ -90,3 +90,111 @@ def create_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(process_expired_auctions, 'cron', second='0')
     return scheduler
+
+def start_database():
+    conn = RunFirstSettings.create_connection()
+    cur = conn.cursor()
+
+    # sırasıyla user_id,username,password,email,student_id,reputation,avatar_url, is_admin , trx_address,is_banned,created_at olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS Users '
+                '(user_id SERIAL PRIMARY KEY,'
+                ' username VARCHAR(50) NOT NULL UNIQUE,'
+                ' password VARCHAR(255) NOT NULL,'
+                ' email VARCHAR(255) NOT NULL UNIQUE,'
+                ' student_id VARCHAR(50) NOT NULL UNIQUE,'
+                ' reputation INT NOT NULL DEFAULT 0,'
+                ' avatar_url VARCHAR(50) NOT NULL,'
+                ' is_admin BOOLEAN NOT NULL DEFAULT FALSE,'
+                ' trx_address VARCHAR(50) NOT NULL,'
+                ' is_banned BOOLEAN NOT NULL DEFAULT FALSE,'
+                ' registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)')
+
+    #items tableı sırasıyla item_id, user_id , title,description,category,starting_price,current_price,image_url, condition,is_active,created_at olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS Items '
+                '(item_id SERIAL PRIMARY KEY,'
+                ' user_id INT NOT NULL,'
+                ' title VARCHAR(255) NOT NULL,'
+                ' description VARCHAR(1023) NOT NULL,'
+                ' category VARCHAR(255) NOT NULL,'
+                ' starting_price DECIMAL(10, 2) NOT NULL,'
+                ' current_price DECIMAL(10, 2) NOT NULL,'
+                ' image_url VARCHAR(50) NOT NULL,'
+                ' condition VARCHAR(50) NOT NULL,'
+                ' is_active BOOLEAN NOT NULL DEFAULT TRUE,'
+                ' publish_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                ' FOREIGN KEY (user_id) REFERENCES Users(user_id)) ON DELETE CASCADE')
+
+    #Bids tableı sırasıyla user_id,item_id,bid_amount,bid_date olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS Bids '
+                '(user_id INT NOT NULL,'
+                ' item_id INT NOT NULL,'
+                ' bid_amount DECIMAL(10, 2) NOT NULL,'
+                ' bid_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,'
+                ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE)'
+                ' PRIMARY KEY (item_id, user_id, bid_amount)')
+
+
+    #Transactions tableı sırasıyla transaction_id,item_id,buyer_id,transaction_date olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS Transactions '
+                '(item_id INT PRIMARY KEY,'
+                ' buyer_id INT NOT NULL,'
+                ' transaction_date TIMESTAMP NOT NULL,'
+                ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE,'
+                ' FOREIGN KEY (buyer_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
+
+    #VirtualCurrency tableı sırasıyla user_id,balance olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS VirtualCurrency '
+                '(user_id INT PRIMARY KEY,'
+                ' balance DECIMAL(10, 2) NOT NULL DEFAULT 0,'
+                ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
+
+    #Messages tableı sırasıyla message_id,sender_id,receiver_id,message_text,send_time olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS Messages '
+                '(message_id SERIAL PRIMARY KEY,'
+                ' sender_id INT NOT NULL,'
+                ' receiver_id INT NOT NULL,'
+                ' message_text VARCHAR(1023) NOT NULL,'
+                ' send_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                ' FOREIGN KEY (sender_id) REFERENCES Users(user_id) ON DELETE CASCADE,'
+                ' FOREIGN KEY (receiver_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
+
+    #Auctions tableı sırasıyla item_id,end_time,is_active olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS Auctions '
+                '(item_id INT PRIMARY KEY,'
+                ' end_time TIMESTAMP NOT NULL,'
+                ' is_active BOOLEAN,'
+                ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE)')
+
+    #deposit tableı sırasıyla deposit_id,user_id,deposit_amount,deposit_date olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS Deposits '
+                '(deposit_id SERIAL PRIMARY KEY,'
+                ' user_id INT NOT NULL,'
+                ' deposit_amount DECIMAL(10, 2) NOT NULL,'
+                ' deposit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
+
+    #withdrawRequest tableı sırasıyla withdraw_id,user_id,withdraw_amount,withdraw_date,req_state,trx_address olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS WithdrawRequests '
+                '(withdraw_id SERIAL PRIMARY KEY,'
+                ' user_id INT NOT NULL,'
+                ' withdraw_amount DECIMAL(10, 2) NOT NULL,'
+                ' withdraw_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                ' req_state VARCHAR(50),'
+                ' trx_address VARCHAR(50) NOT NULL,'
+                ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
+
+    #trxkeys tableı sırasıyla address,public_key,private_key olacak address userdaki trx_addresse referens olacak
+    cur.execute('CREATE TABLE IF NOT EXISTS TrxKeys '
+                '(address VARCHAR(100) PRIMARY KEY,'
+                ' public_key VARCHAR(255) NOT NULL,'
+                ' private_key VARCHAR(100) NOT NULL,'
+                ' FOREIGN KEY (address) REFERENCES Users(trx_address) ON DELETE CASCADE)')
+
+    cur.execute('CREATE EXTENSION IF NOT EXISTS pg_trgm')
+    cur.execute('CREATE INDEX IF NOT EXISTS items_title_trgm_idx ON items USING gist (title gist_trgm_ops)')
+    cur.execute('CREATE INDEX IF NOT EXISTS hash_index_on_itemidx ON items USING HASH (item_id)')
+
+    cur.commit()
+    cur.close()
+    conn.close()

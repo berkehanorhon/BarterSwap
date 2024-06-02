@@ -36,5 +36,5 @@ def catch_all(path):
 
 if __name__ == '__main__':
     barterswap.create_scheduler().start()
-
+    barterswap.start_database()
     socketio.run(app)
