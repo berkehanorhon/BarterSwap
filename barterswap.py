@@ -152,6 +152,9 @@ def process_expired_auctionsv2(): # TODO !!!!
                 INSERT INTO Transactions (item_id, buyer_id, transaction_date)
                 SELECT item_id, buyer_id, transaction_date
                 FROM new_transactions;
+                UPDATE items
+                SET is_active = FALSE
+                WHERE item_id IN (SELECT item_id FROM update_auctions);
                 RETURNING (SELECT count(1) FROM expired_auctions);
             """, (now, now))
 

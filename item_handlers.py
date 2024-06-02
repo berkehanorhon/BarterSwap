@@ -59,8 +59,11 @@ def get_item(item_id):
     # REWRITE WITH BIDS
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
-    item = list(cursor.fetchone())
+    cursor.execute('SELECT * FROM items WHERE item_id = %s AND (is_active = True OR user_id = %s)', (item_id,session['user_id']))
+    item = cursor.fetchone()
+    if not item:
+        return render_template('404.html')
+    item = list(item)
     cursor.execute('SELECT username FROM users WHERE user_id = %s', (item[1],))
     seller = cursor.fetchone()[0]
     item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
@@ -90,17 +93,13 @@ def edit_item(item_id):
 
     if request.method == 'POST':
         print(request.form)
-        # if 1:
-        #     return render_template('404.html')
-        # check item is owned by session user
+
         user_id = session['user_id']
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT 1 FROM items WHERE item_id = %s and user_id = %s', (item_id, user_id))
-        z = cursor.fetchone()
-        print(z)
-        if not z:
-            # flash("You do not have access to edit this item!", "error")
+        if not cursor.fetchone():
+            flash("You do not have permission to edit this item or item does not exist", "error")
             return redirect(url_for('home.home'))
         # TODO image editing will be added
         name = request.form['name']
@@ -125,8 +124,11 @@ def edit_item(item_id):
         # REWRITE WITH BIDS
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM items WHERE item_id = %s', (item_id,))
-        item = list(cursor.fetchone())
+        cursor.execute('SELECT * FROM items WHERE item_id = %s and is_active = True and user_id = %s', (item_id,session['user_id']))
+        item = cursor.fetchone()
+        if not item:
+            return render_template('404.html')
+        item = list(item)
         item[7] = item[7] if item[7] and os.path.exists("static/images/%s" % item[7]) else 'default.png'
         conn.close()
         return render_template('item/edititem.html', item=item, max_content_length=barterswap.max_content_length,

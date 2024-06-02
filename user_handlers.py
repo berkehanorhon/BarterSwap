@@ -168,7 +168,7 @@ def user_profile(username):
     user = cursor.fetchone()
     if not user:
         return render_template('404.html')
-    cursor.execute('SELECT * FROM items WHERE user_id = %s', (user[0],))
+    cursor.execute('SELECT * FROM items WHERE user_id = %s AND is_active = True', (user[0],))
     items = cursor.fetchall()
     conn.close()
 
