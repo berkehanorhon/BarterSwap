@@ -21,7 +21,7 @@ def get_current_time():
 
 def upload_and_give_name(path, image, allowed_types):
     if not image:
-        raise Exception("No image uploaded!")
+        return None
     mimetype = mimetypes.guess_type(image.filename)[0]
     if mimetype not in allowed_types:
         return 'Invalid file type', 415
@@ -42,53 +42,6 @@ def set_end_time(hours):
     end_time = end_time.replace(minute=end_time.minute if end_time.second < 30 else end_time.minute + 1, second=55,
                                 microsecond=0)
     return end_time
-
-
-def process_expired_auctions():
-    print("Transaction executed!")
-    conn = RunFirstSettings.create_connection()
-    cur = conn.cursor()
-    now = get_current_time()
-    for _ in range(MAX_TRANSACTION_RETRY_COUNT):
-        try:
-            # Start a new transaction
-            cur.execute('BEGIN')
-
-            # Select expired auctions
-            cur.execute('SELECT item_id FROM auctions WHERE end_time <= %s AND is_active = True FOR UPDATE', (now,))
-            expired_auctions = cur.fetchall()
-
-            # For each expired auction, check if there are any bids
-            for auction in expired_auctions:
-                cur.execute('SELECT user_id FROM Bids WHERE item_id = %s ORDER BY bid_amount DESC LIMIT 1',
-                            (auction[0],))
-                highest_bidder_id = cur.fetchone()
-
-                # Check if a transaction already exists for this item_id
-                cur.execute('SELECT 1 FROM Transactions WHERE item_id = %s', (auction[0],))
-                transaction_exists = cur.fetchone()
-
-                # If there is a highest bid and no transaction exists, create a transaction record
-                if highest_bidder_id and not transaction_exists:
-                    cur.execute('INSERT INTO Transactions (item_id, buyer_id, transaction_date) VALUES (%s, %s, %s)',
-                                (auction[0], highest_bidder_id, now))
-
-                # Update the auction to inactive
-                cur.execute('UPDATE auctions SET is_active = False WHERE item_id = %s', (auction[0],))
-
-            # Commit the transaction
-            conn.commit()
-            print("%s auctions has been closed!" % len(expired_auctions))
-            break  # If commit was successful, break the retry loop
-
-        except Exception as e:
-            # If an error occurs, rollback the transaction
-            conn.rollback()
-            print(f"An error occurred at auction transaction: {e}")
-
-    cur.close()
-    conn.close()
-
 
 def load_db_config():
     with open('settings.yaml', 'r') as file:
@@ -111,7 +64,7 @@ def dump_database():
     except subprocess.CalledProcessError as e:
         print(f"Database dump failed: {str(e)}")
 
-def process_expired_auctionsv2(): # TODO !!!!
+def process_expired_auctions():
     print("Transaction executed!")
     conn = RunFirstSettings.create_connection()
     cur = conn.cursor()
@@ -124,40 +77,48 @@ def process_expired_auctionsv2(): # TODO !!!!
             # SQL query to handle the entire process in the database
             cur.execute("""
                 WITH expired_auctions AS (
-                    SELECT item_id
-                    FROM auctions
-                    WHERE end_time <= %s AND is_active = TRUE
-                ),
-                highest_bids AS (
-                    SELECT item_id, user_id AS buyer_id
-                    FROM Bids
-                    WHERE item_id IN (SELECT item_id FROM expired_auctions)
-                    ORDER BY bid_amount DESC
-                ),
-                new_transactions AS (
-                    SELECT DISTINCT ON (hb.item_id) 
-                        hb.item_id, 
-                        hb.buyer_id, 
-                        %s AS transaction_date
-                    FROM highest_bids hb
-                    LEFT JOIN Transactions t ON hb.item_id = t.item_id
-                    WHERE t.item_id IS NULL
-                ),
-                update_auctions AS (
-                    UPDATE auctions
-                    SET is_active = FALSE
-                    WHERE item_id IN (SELECT item_id FROM expired_auctions)
-                    RETURNING item_id
-                )
+                SELECT item_id
+                FROM auctions
+                WHERE end_time <= %s AND is_active = TRUE
+            ),
+            highest_bids AS (
+                SELECT item_id, user_id AS buyer_id
+                FROM Bids
+                WHERE item_id IN (SELECT item_id FROM expired_auctions)
+                ORDER BY bid_amount DESC
+            ),
+            new_transactions AS (
+                SELECT DISTINCT ON (hb.item_id) 
+                    hb.item_id, 
+                    hb.buyer_id, 
+                    %s AS transaction_date
+                FROM highest_bids hb
+                LEFT JOIN Transactions t ON hb.item_id = t.item_id
+                WHERE t.item_id IS NULL
+            ),
+            update_auctions AS (
+                UPDATE auctions
+                SET is_active = FALSE
+                WHERE item_id IN (SELECT item_id FROM expired_auctions)
+                RETURNING item_id
+            ),
+            insert_transactions AS (
                 INSERT INTO Transactions (item_id, buyer_id, transaction_date)
                 SELECT item_id, buyer_id, transaction_date
-                FROM new_transactions;
-                RETURNING (SELECT count(1) FROM expired_auctions);
-            """, (now, now))
+                FROM new_transactions
+                RETURNING item_id
+            ),
+            update_items AS (
+                UPDATE items
+                SET is_active = FALSE
+                WHERE item_id IN (SELECT item_id FROM update_auctions)
+                RETURNING item_id
+            )
+            SELECT count(1) FROM expired_auctions;""", (now, now))
 
             # Commit the transaction
             conn.commit()
-            print("Auctions have been processed and closed successfully!")
+            print("Auctions have been processed and closed successfully!(%s)"%cur.fetchone())
             break  # If commit was successful, break the retry loop
 
         except Exception as e:
@@ -209,6 +170,9 @@ def add_bidding_func():
             UPDATE virtualcurrency
             SET balance = balance + last_bid.bid_amount
             WHERE user_id = last_bid.user_id;
+            UPDATE bids
+            SET refunded = TRUE
+            WHERE bids.user_id = last_bid.user_id AND bids.item_id = last_bid.item_id AND bids.bid_amount = last_bid.bid_amount;
         END IF;
 
         -- Yeni teklif verenin bakiyesini güncelle

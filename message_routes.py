@@ -8,13 +8,14 @@ message_routes = Blueprint('message_routes', __name__, static_folder='static', t
 @message_routes.route('/<username>', methods=['GET', 'POST'])
 def get_user_messages(username):
 
+    if 'user_id' not in session:
+        flash("You need to sign in first", "error")
+        return redirect(url_for('user_handlers.signin'))
+
     if username == session['username']:
         flash("You cannot talk with yourself.", "error")
         return redirect(url_for('home.home'))
 
-    if 'user_id' not in session:
-        flash("You need to sign in first", "error")
-        return redirect(url_for('user_handlers.signin'))
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
