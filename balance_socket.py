@@ -21,7 +21,8 @@ source_address = "TViENFFbjQFmU3gKDUtcXpMYHZJ8xsjXLD"
 
 transaction_started_flags = {}
 
-async def check_transaction(public_key, user_id): #TODO Transactional deposit implementation
+
+async def check_transaction(public_key, user_id):  # TODO Transactional deposit implementation
     start_time = time.time()
     transaction_started_flags[user_id] = True
     while time.time() - start_time < 3600:  # 1 hour
@@ -35,19 +36,28 @@ async def check_transaction(public_key, user_id): #TODO Transactional deposit im
             conn = RunFirstSettings.create_connection()
             cursor = conn.cursor()
 
-            cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user_id,))
-            current_balance = cursor.fetchone()[0]
+            # Transaction başlat
+            cursor.execute('BEGIN')
 
-            new_balance = current_balance + int(balance / 1000000)
-            cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s', (new_balance, user_id))
+            cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s FOR UPDATE',
+                           (int(balance / 1000000), user_id))
 
-            cursor.execute("Select private_key FROM trxkeys WHERE address = %s", (public_key,))
-            tron.private_key = cursor.fetchone()[0]
+            cursor.execute("SELECT private_key FROM trxkeys WHERE address = %s FOR UPDATE", (public_key,))
+            private_key_result = cursor.fetchone()
+            if not private_key_result:
+                raise Exception("Private key not found for the given public key.")
+
+            tron.private_key = private_key_result[0]
             tron.default_address = public_key
 
             balance = float(balance / 1000000)
             cursor.execute('INSERT INTO deposit (user_id, deposit_amount) VALUES (%s, %s)', (user_id, balance))
-            transaction = tron.trx.send_transaction(source_address, balance)
+
+            # Transaction gerçekleştir
+            transaction = tron.trx.send_transaction(public_key, balance)
+            if not transaction['result']:
+                raise Exception("Transaction failed on blockchain side.")
+
             conn.commit()
             cursor.close()
             conn.close()
@@ -57,9 +67,14 @@ async def check_transaction(public_key, user_id): #TODO Transactional deposit im
             return
 
         except Exception as e:
-            import traceback
-            print(f'Error : {e}')
+            print(f'Error: {e}')
             traceback.print_exc()
+
+            if 'conn' in locals() and conn is not None:
+                conn.rollback()
+                cursor.close()
+                conn.close()
+
             socketio.emit('transaction_failed', {'message': 'Transaction failed.'}, namespace='/test')
             transaction_started_flags.pop(user_id)
             return

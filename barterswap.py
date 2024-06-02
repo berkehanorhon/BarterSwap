@@ -55,7 +55,7 @@ def process_expired_auctions():
             cur.execute('BEGIN')
 
             # Select expired auctions
-            cur.execute('SELECT item_id FROM auctions WHERE end_time <= %s AND is_active = True', (now,))
+            cur.execute('SELECT item_id FROM auctions WHERE end_time <= %s AND is_active = True FOR UPDATE', (now,))
             expired_auctions = cur.fetchall()
 
             # For each expired auction, check if there are any bids
