@@ -34,7 +34,3 @@ socketio.init_app(app)
 def catch_all(path):
     return render_template('404.html'), 404
 
-barterswap.create_scheduler().start()
-barterswap.start_database()
-if __name__ == '__main__':
-    socketio.run(app)
