@@ -28,13 +28,13 @@
     </style>
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <h2 class="text-center mb-4">All Users</h2>
+            <h2 class="text-center mb-4">All Items</h2>
 
             <ul class="list-group">
                 {% for item in items %}
                     <li class="list-group-item">
-                        <h3>{{ item[1] }}</h3>
-                        <p>Mail: {{ item[2] }}</p>
+                        <h3>Title: {{ item[1] }}</h3>
+                        <p>Description: {{ item[2] }}</p>
                         <button class="btn btn-primary" onclick="redirectToItem('{{ item[0] }}')">View Item</button>
                     </li>
                 {% endfor %}
