@@ -37,6 +37,13 @@ def add_bid(item_id):
         flash("Your bid must be higher than the current price by at least 1.0", "error")
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
 
+    cursor.execute('SELECT user_id FROM bids WHERE item_id = %s ORDER BY bid_amount DESC LIMIT 1', (item_id,))
+    last_bidder_id = cursor.fetchone()[0]
+
+    if last_bidder_id == user_id:
+        flash("Highest bid is already yours!", "error")
+        return redirect(url_for('item_handlers.get_item', item_id=item_id))
+
     try:
         cursor.execute('BEGIN')
         cursor.execute('SET LOCAL statement_timeout = %s', (5000,))  # 5000 ms timeout
@@ -93,7 +100,7 @@ def search(page, per_page=10):
 
     query = request.args.get('query')
     if query == "":
-        return redirect(url_for('bid_handlers.myitems'))
+        return redirect(url_for('bid_handlers.mybids'))
 
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()

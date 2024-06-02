@@ -59,7 +59,7 @@
                     {% if page_num == current_page %}
                         <a class="active" href="#">{{ page_num }}</a>
                     {% else %}
-                        <a href="{{ url_for('bid_handlers.myitems', page=page_num) }}">{{ page_num }}</a>
+                        <a href="{{ url_for('bid_handlers.mybids', page=page_num) }}">{{ page_num }}</a>
                     {% endif %}
                 {% endfor %}
             </div>
