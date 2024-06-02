@@ -13,8 +13,8 @@
                             <label for="is_new_image" class="form-label">Change Image to Selected Image</label>
                             <input type="file" class="form-control" id="image" name="image" accept="{{ ",".join(ALLOWED_IMAGE_TYPES) }}" onchange="checkFileSizeAndCheckbox(this)">
                             <textarea class="form-control" id="description" name="description" placeholder="Current Description: {{ item[3] }}" rows="3" required style="width: 100%; height: 150px; resize: none;"></textarea>
-                            <p class="card-text">Starting Price: ${{ item[5] }}</p>
-                            <p class="card-text">Highest Bid: ${{ item[6] }}</p>
+                            <p class="card-text">Starting Price: TRX {{ item[5] }}</p>
+                            <p class="card-text">Highest Bid: TRX {{ item[6] }}</p>
                             <p class="card-text">Last Bids</p>
                         </div>
                     </div>

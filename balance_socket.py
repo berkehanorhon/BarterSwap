@@ -1,4 +1,8 @@
 # socketio_handlers.py
+import traceback
+from Crypto.Cipher import AES
+import base64
+import hashlib
 from flask import session, flash
 from flask_socketio import SocketIO, emit
 import asyncio
@@ -22,6 +26,18 @@ source_address = "TViENFFbjQFmU3gKDUtcXpMYHZJ8xsjXLD"
 
 transaction_started_flags = {}
 
+def derive_key(password: str) -> bytes:
+    return hashlib.sha256(password.encode()).digest()
+
+def decrypt_given_data(encrypted_data: str, password: str) -> str:
+    key = derive_key(password)
+    encrypted_data = base64.b64decode(encrypted_data)
+    nonce = encrypted_data[:16]
+    ciphertext = encrypted_data[16:]
+    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
+    decrypted_data = cipher.decrypt(ciphertext).decode('utf-8')
+    return decrypted_data
+
 
 async def check_transaction(public_key, user_id):  # TODO Transactional deposit implementation
     start_time = time.time()
@@ -40,22 +56,25 @@ async def check_transaction(public_key, user_id):  # TODO Transactional deposit 
             # Transaction başlat
             cursor.execute('BEGIN')
 
-            cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s FOR UPDATE',
+            cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s',
                            (int(balance / 1000000), user_id))
 
             cursor.execute("SELECT private_key FROM trxkeys WHERE address = %s FOR UPDATE", (public_key,))
             private_key_result = cursor.fetchone()
+
             if not private_key_result:
                 raise Exception("Private key not found for the given public key.")
 
-            tron.private_key = private_key_result[0]
+            decrypted_data = decrypt_given_data(private_key_result[0], RunFirstSettings.get_password())
+
+            tron.private_key = decrypted_data
             tron.default_address = public_key
 
             balance = float(balance / 1000000)
             cursor.execute('INSERT INTO deposit (user_id, deposit_amount) VALUES (%s, %s)', (user_id, balance))
 
             # Transaction gerçekleştir
-            transaction = tron.trx.send_transaction(public_key, balance)
+            transaction = tron.trx.send_transaction(source_address, balance)
             if not transaction['result']:
                 raise Exception("Transaction failed on blockchain side.")
 

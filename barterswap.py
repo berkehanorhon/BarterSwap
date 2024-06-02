@@ -220,7 +220,7 @@ def start_database():
                 ' category VARCHAR(255) NOT NULL,'
                 ' starting_price DECIMAL(10, 2) NOT NULL,'
                 ' current_price DECIMAL(10, 2) NOT NULL,'
-                ' image_url VARCHAR(50) NOT NULL,'
+                ' image_url VARCHAR(50),'
                 ' condition VARCHAR(50) NOT NULL,'
                 ' is_active BOOLEAN NOT NULL DEFAULT TRUE,'
                 ' publish_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
@@ -284,7 +284,7 @@ def start_database():
     cur.execute('CREATE TABLE IF NOT EXISTS TrxKeys '
                 '(address VARCHAR(100) PRIMARY KEY,'
                 ' public_key VARCHAR(255) NOT NULL,'
-                ' private_key VARCHAR(100) NOT NULL,'
+                ' private_key VARCHAR(300) NOT NULL,'
                 ' FOREIGN KEY (address) REFERENCES Users(trx_address) ON DELETE CASCADE)')
 
     cur.execute('CREATE EXTENSION IF NOT EXISTS pg_trgm')

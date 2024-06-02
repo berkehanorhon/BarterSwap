@@ -7,9 +7,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>{% block stylesheet %} {% endblock %}</style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-
+    <style>
+        .trx-text {
+            color: black;
+        }
+    </style>
 </head>
 <body>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('home.home') }}">BarterSwap</a>
@@ -23,8 +28,8 @@
 
                         <li class="nav-item">
                             <div class="dropdown">
-                                <button class="nav-link balance-btn ropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="balance-icon">💰</span> Balance: {{ user_balance }}
+                                <button class="nav-link balance-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="balance-icon trx-text">💰 TRX</span> Balance: {{ user_balance }}
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                     <li><a class="dropdown-item" href="{{ url_for('balance_handlers.deposit') }}">Deposit</a></li>
@@ -33,19 +38,24 @@
                                 </ul>
                             </div>
                         </li>
-                        <div class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Actions
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('item_handlers.add_item') }}">Add Item</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('item_handlers.myitems') }}">My Items</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('bid_handlers.mybids') }}">My Bıds</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('message_routes.get_users_last_messages') }}">Messages</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('user_handlers.profile') }}">Profile</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('user_handlers.logout') }}">Logout</a></li>
-                            </ul>
-                        </div>
+
+
+                        <li class="nav-item">
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Item
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('item_handlers.add_item') }}">Add Item</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('item_handlers.myitems') }}">My Items</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('bid_handlers.mybids') }}">My Bıds</a></li>
+
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('message_routes.get_users_last_messages') }}">Messages</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('user_handlers.profile') }}">Profile</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('user_handlers.logout') }}">Logout</a></li>
                         {% else %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('user_handlers.profile') }}">Profile</a>
