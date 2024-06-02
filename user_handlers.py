@@ -4,6 +4,9 @@ import RunFirstSettings
 import re
 import barterswap
 from tronapi import Tron, HttpProvider
+from Crypto.Cipher import AES
+import base64
+import hashlib
 
 full_node = HttpProvider('https://api.trongrid.io')
 solidity_node = HttpProvider('https://api.trongrid.io')
@@ -77,6 +80,40 @@ def signin():
         return render_template('signin.html')
 
 
+# Belirlediğiniz şifreyi anahtara dönüştürmek için kullanıyoruz
+def derive_key(password: str) -> bytes:
+    return hashlib.sha256(password.encode()).digest()
+
+
+def encrypt_given_data(data: str, password: str) -> str:
+    key = derive_key(password)
+    cipher = AES.new(key, AES.MODE_EAX)
+    nonce = cipher.nonce
+    ciphertext, tag = cipher.encrypt_and_digest(data.encode())
+    return base64.b64encode(nonce + ciphertext).decode('utf-8')
+
+# AES ile şifre çözme işlemi
+def decrypt_given_data(encrypted_data: str, password: str) -> str:
+    key = derive_key(password)
+    encrypted_data = base64.b64decode(encrypted_data)
+    nonce = encrypted_data[:16]
+    ciphertext = encrypted_data[16:]
+    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
+    decrypted_data = cipher.decrypt(ciphertext).decode('utf-8')
+    return decrypted_data
+
+# Örnek kullanım
+password = "BERKESADETTIN"
+original_data = "7dd861b679142b305a989f4aef256513d9d0aa362c2c0b27abef3a6c6c01ca75"
+
+encrypted_data = encrypt_given_data(original_data, password)
+print(f"Encrypted: {encrypted_data}")
+
+decrypted_data = decrypt_given_data(encrypted_data, password)
+print(f"Decrypted: {decrypted_data}")
+
+
+
 @user_handlers.route('/signup', methods=['GET', 'POST'])
 def signup():
     if 'user_id' in session:
@@ -111,13 +148,15 @@ def signup():
             flash("Username or email is already used", "signup error")
             return render_template('signup.html')
         new_account = tron.create_account
+        encrypted_data = encrypt_given_data(new_account.private_key, RunFirstSettings.get_password())
+
         try:
             # Start transaction
             cursor.execute('BEGIN')
-            cursor.execute('INSERT INTO users (username, password,email,trx_address,is_banned,student_id,avatar_url) VALUES (%s, %s,%s,%s,%s,%s)',
+            cursor.execute('INSERT INTO users (username, password,email,trx_address,is_banned,student_id,avatar_url) VALUES (%s, %s,%s,%s,%s,%s,%s)',
                        (username, hashed_password, mail,new_account.address["base58"],False,student_id,"default.png"))
 
-            cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
+            cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,encrypted_data))
 
             cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
             user = cursor.fetchone()
