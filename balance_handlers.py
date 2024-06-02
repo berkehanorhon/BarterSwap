@@ -63,7 +63,7 @@ def withdraw():  # TODO Transactional withdraw implementation
                         (user_id, amount, 'Pending', trx_address))
 
                     # Update the user's balance
-                    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s',
+                    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s FOR UPDATE',
                                    (amount, user_id))
 
                     # Commit işlemi
