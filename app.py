@@ -50,5 +50,5 @@ def check_ban_status():
 if __name__ == '__main__':
     barterswap.add_bidding_func()
     barterswap.create_scheduler().start()
-
+    barterswap.start_database()
     socketio.run(app)
