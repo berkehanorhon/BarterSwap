@@ -48,6 +48,7 @@ def check_ban_status():
             return render_template('404.html'), 404
 
 if __name__ == '__main__':
+    barterswap.add_bidding_func()
     barterswap.create_scheduler().start()
 
     socketio.run(app)
