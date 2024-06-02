@@ -30,7 +30,7 @@ def deposit():
     return render_template('account_balance/deposit.html', balance=balance, trx_address = trx_address)
 
 @balance_handlers.route('/withdraw', methods=['GET', 'POST'])
-def withdraw():
+def withdraw(): #TODO Transactional withdraw implementation
     if 'user_id' not in session:
         return redirect(url_for('user_handlers.signin'))
 

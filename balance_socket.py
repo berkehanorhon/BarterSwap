@@ -21,7 +21,7 @@ source_address = "TViENFFbjQFmU3gKDUtcXpMYHZJ8xsjXLD"
 
 transaction_started_flags = {}
 
-async def check_transaction(public_key, user_id):
+async def check_transaction(public_key, user_id): #TODO Transactional deposit implementation
     start_time = time.time()
     transaction_started_flags[user_id] = True
     while time.time() - start_time < 3600:  # 1 hour
