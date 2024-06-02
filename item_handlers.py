@@ -60,7 +60,7 @@ def get_item(item_id):
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
     user_id = session['user_id'] if 'user_id' in session else None
-    cursor.execute('SELECT * FROM items WHERE item_id = %s AND (is_active = True OR user_id = %s)', (item_id,user_id))
+    cursor.execute('SELECT * FROM items WHERE item_id = %s AND (is_active = True OR user_id = %s or is_admin = True)', (item_id,user_id))
     item = cursor.fetchone()
     if not item:
         return render_template('404.html')

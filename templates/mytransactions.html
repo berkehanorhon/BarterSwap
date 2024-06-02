@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+    <style>
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .pagination a {
+            color: black;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 5px 2px;
+        }
+        .pagination a:hover {
+            background-color: #e9ecef;
+        }
+        .pagination a.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+    </style>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2 class="text-center mb-4">Your Transactions</h2>
+
+            <div class="mb-3">
+                <form action="{{ url_for('transaction_handlers.search', searchitem=query) }}" method="GET">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search..." name="query">
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+                </form>
+            </div>
+
+
+            <ul class="list-group">
+                {% for item in items %}
+                    <li class="list-group-item">
+                        <h3>{{ item[0] }}</h3>
+                        <p>Description: {{ item[1] }}</p>
+                        <p>Transaction Price: ${{ item[2] }}</p>
+                        <p>Transaction Date: {{ item[3].strftime("%Y-%m-%d %H:%M:%S") }}</p>
+                        <p>Transaction Status: {{ "Transaction is done." if item[4] == 3 else "Still in process" }}</p>
+                        {% if item[4] == 1 %}
+                            <button class="btn btn-primary" onclick="approveTransaction({{ item[5] }})">Approve Transaction</button>
+                        {% endif %}
+                        {% if item[4] == 2 %}
+                            <button class="btn btn-primary" onclick="positiveReview({{ item[5] }})">Positive Review Transaction</button>
+                            <button class="btn btn-primary" onclick="negativeReview({{ item[5] }})">Negative Review Transaction</button>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                {% if items|length == 0 and search %}
+                    <button class="btn btn-primary" onclick="redirectToHome()">No transactions found. Go back to your transactions.</button>
+                {% endif %}
+            </ul>
+
+            <div class="pagination">
+                {% for page_num in range(1, total_pages) %}
+                    {% if page_num == current_page %}
+                        <a class="active" href="#">{{ page_num }}</a>
+                    {% else %}
+                        <a href="{{ url_for('transaction_handlers.mytransactions', page=page_num) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+    {% include 'flashmessages.html' %}
+    <script>
+        function redirectToHome() {
+            window.location.href = "/transactions/mytransactions";
+        }
+        function approveTransaction(item_id) {
+            window.location.href = "/transactions/approve/"+item_id+"/{{ session['user_id'] }}";
+        }
+        function positiveReview(item_id) {
+            window.location.href = "/transactions/evaluate/"+item_id+"/{{ session['user_id'] }}/1";
+        }
+        function negativeReview(item_id) {
+            window.location.href = "/transactions/evaluate/"+item_id+"/{{ session['user_id'] }}/0";
+        }
+    </script>
+{% endblock %}

@@ -9,6 +9,7 @@ from message_routes import message_routes
 from user_handlers import user_handlers
 from item_handlers import item_handlers
 from auction_handlers import auction_handlers
+from transaction_handlers import transaction_handlers
 from home import home_bp
 from errorhandler import error_bp
 import barterswap
@@ -29,6 +30,7 @@ app.register_blueprint(message_routes, url_prefix='/messages')
 app.register_blueprint(admin_handlers, url_prefix='/admin')
 app.register_blueprint(auction_handlers, url_prefix="/auctions")
 app.register_blueprint(balance_handlers, url_prefix='/balance')
+app.register_blueprint(transaction_handlers, url_prefix='/transactions')
 socketio.init_app(app)
 
 @app.route('/<path:path>')
@@ -50,5 +52,6 @@ def check_ban_status():
 if __name__ == '__main__':
     barterswap.add_bidding_func()
     barterswap.create_scheduler().start()
+    barterswap.create_scheduler_transactions().start()
     barterswap.start_database()
     socketio.run(app)
