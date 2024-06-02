@@ -10,7 +10,8 @@
                         <form action="{{ url_for('balance_handlers.withdraw') }}" method="post" onsubmit="return checkAmount();">
                             <div class="form-group">
                                 <label for="amount">Amount:</label>
-                                <input type="number" id="amount" name="amount" min="1" class="form-control" required>
+                                <input type="number" id="amount" name="amount" min="5" class="form-control" required>
+                                <p class="text-muted">Min withdrawal: 5 TRX</p>
                             </div>
                             <div class="form-group">
                                 <label for="trx_address">TRX Address:</label>
@@ -31,6 +32,11 @@
 
             if (amount > balance) {
                 alert('The amount cannot be greater than the balance.');
+                return false;
+            }
+
+            if (amount < 5) {
+                alert('The minimum withdrawal amount is 5 TRX.');
                 return false;
             }
 

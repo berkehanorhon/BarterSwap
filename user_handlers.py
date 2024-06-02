@@ -86,7 +86,7 @@ def signup():
         username = data['username']
         mail = data['mail']
         password = data['password']
-
+        student_id = int(data['student_id'])
         # Check username format
         if not re.match('^[a-zA-Z0-9]+$', username) or not (3 <= len(username) <= 20):
             flash("Invalid username format", "signup error")
@@ -113,14 +113,14 @@ def signup():
         try:
             # Start transaction
             cursor.execute('BEGIN')
-            cursor.execute('INSERT INTO users (username, password,email,trx_address) VALUES (%s, %s,%s,%s)',
-                       (username, hashed_password, mail,new_account.address["base58"]))
+            cursor.execute('INSERT INTO users (username, password,email,trx_address,student_id,avatar_url) VALUES (%s, %s,%s,%s,%s,%s)',
+                       (username, hashed_password, mail,new_account.address["base58"],student_id,"default.png"))
 
             cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
 
             cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
             user = cursor.fetchone()
-            cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 10))
+            cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 0))
 
             # Commit transaction
             conn.commit()

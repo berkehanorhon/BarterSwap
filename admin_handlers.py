@@ -128,10 +128,52 @@ def view_withdraw_requests():
     # Get all withdraw requests
     cursor.execute('SELECT * FROM withdrawrequest ORDER BY withdraw_date DESC')
     requests = cursor.fetchall()
-    print(requests)
     conn.close()
 
     return render_template('admin/withdraw_requests.html', requests=requests)
+
+@admin_handlers.route('/accept_withdraw', methods=['POST'])
+def accept_withdraw():
+    if 'user_id' not in session or not session['is_admin']:
+        return redirect(url_for('user_handlers.signin'))
+
+    withdraw_id = request.form['withdraw_id']
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Update the status of the withdraw request in the database
+    cursor.execute('UPDATE withdrawrequest SET req_state = %s WHERE withdraw_id = %s', ('Accepted', withdraw_id))
+    # Commit the transaction
+    conn.commit()
+    conn.close()
+    # Redirect the user back to the withdraw requests page
+    return redirect(url_for('admin_handlers.view_withdraw_requests'))
+
+@admin_handlers.route('/reject_withdraw', methods=['POST'])
+def reject_withdraw():
+    if 'user_id' not in session or not session['is_admin']:
+        return redirect(url_for('user_handlers.signin'))
+
+    withdraw_id = request.form['withdraw_id']
+
+    conn = RunFirstSettings.create_connection()
+    cursor = conn.cursor()
+
+    # Get the amount and user_id of the withdraw request
+    cursor.execute('SELECT user_id, withdraw_amount FROM withdrawrequest WHERE withdraw_id = %s', (withdraw_id,))
+    user_id, amount = cursor.fetchone()
+
+    # Update the status of the withdraw request in the database
+    cursor.execute('UPDATE withdrawrequest SET req_state = %s WHERE withdraw_id = %s', ('Rejected', withdraw_id))
+
+    # Update the user's balance
+    cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s', (amount, user_id))
+
+    # Commit the transaction
+    conn.commit()
+    conn.close()
+    # Redirect the user back to the withdraw requests page
+    return redirect(url_for('admin_handlers.view_withdraw_requests'))
 
 @admin_handlers.route('/ban_user/<int:user_id>', methods=['GET'])
 def ban_user(user_id):
