@@ -37,7 +37,7 @@
                         {% for deposit in deposits %}
                             <tr>
                                 <td>{{ deposit[0] }}</td>
-                                <td>{{ deposit[1] }}</td>
+                                <td>{{ deposit[1].strftime("%Y-%m-%d %H:%M:%S") }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -56,7 +56,7 @@
                         {% for withdraw in withdraws %}
                             <tr>
                                 <td>{{ withdraw[0] }}</td>
-                                <td>{{ withdraw[1] }}</td>
+                                <td>{{ withdraw[1].strftime("%Y-%m-%d %H:%M:%S") }}</td>
                                 <td>{{ withdraw[2] }}</td>
                             </tr>
                         {% endfor %}

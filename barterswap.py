@@ -1,5 +1,8 @@
 import mimetypes
 import os.path
+import subprocess
+
+import yaml
 from PIL import Image
 from werkzeug.utils import secure_filename
 import uuid
@@ -86,6 +89,28 @@ def process_expired_auctions():
     cur.close()
     conn.close()
 
+
+def load_db_config():
+    with open('settings.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+        return config['database']
+def dump_database():
+    db_config = load_db_config()
+
+    now = datetime.now()
+    date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
+    dump_file_path = f"dumps/{date_time}_file.sql"
+
+    # Neon CLI komutunu oluşturma
+    dump_cmd = f"neon db dump --project-name {db_config['project_name']} --database-name {db_config['name']} --username {db_config['username']} --password {db_config['password']} --host {db_config['host']} --output-file {dump_file_path}"
+
+    try:
+        # Komutu çalıştırma
+        subprocess.run(dump_cmd, shell=True, check=True)
+        print("Database dump successful.")
+    except subprocess.CalledProcessError as e:
+        print(f"Database dump failed: {str(e)}")
+
 def process_expired_auctionsv2(): # TODO !!!!
     print("Transaction executed!")
     conn = RunFirstSettings.create_connection()
@@ -147,6 +172,7 @@ def process_expired_auctionsv2(): # TODO !!!!
 def create_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(process_expired_auctions, 'cron', second='0')
+    #scheduler.add_job(dump_database, 'interval', seconds=10)
     return scheduler
 
 
@@ -209,7 +235,6 @@ def start_database():
     conn = RunFirstSettings.create_connection()
     cur = conn.cursor()
 
-    # sırasıyla user_id,username,password,email,student_id,reputation,avatar_url, is_admin , trx_address,is_banned,created_at olacak
     cur.execute('CREATE TABLE IF NOT EXISTS Users '
                 '(user_id SERIAL PRIMARY KEY,'
                 ' username VARCHAR(50) NOT NULL UNIQUE,'
@@ -219,11 +244,10 @@ def start_database():
                 ' reputation INT NOT NULL DEFAULT 0,'
                 ' avatar_url VARCHAR(50) NOT NULL,'
                 ' is_admin BOOLEAN NOT NULL DEFAULT FALSE,'
-                ' trx_address VARCHAR(50) NOT NULL,'
+                ' trx_address VARCHAR(50) NOT NULL UNIQUE,'
                 ' is_banned BOOLEAN NOT NULL DEFAULT FALSE,'
                 ' registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)')
 
-    #items tableı sırasıyla item_id, user_id , title,description,category,starting_price,current_price,image_url, condition,is_active,created_at olacak
     cur.execute('CREATE TABLE IF NOT EXISTS Items '
                 '(item_id SERIAL PRIMARY KEY,'
                 ' user_id INT NOT NULL,'
@@ -236,20 +260,20 @@ def start_database():
                 ' condition VARCHAR(50) NOT NULL,'
                 ' is_active BOOLEAN NOT NULL DEFAULT TRUE,'
                 ' publish_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
-                ' FOREIGN KEY (user_id) REFERENCES Users(user_id)) ON DELETE CASCADE')
+                ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
 
-    #Bids tableı sırasıyla user_id,item_id,bid_amount,bid_date olacak
+
     cur.execute('CREATE TABLE IF NOT EXISTS Bids '
                 '(user_id INT NOT NULL,'
                 ' item_id INT NOT NULL,'
                 ' bid_amount DECIMAL(10, 2) NOT NULL,'
                 ' bid_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                ' PRIMARY KEY (item_id, user_id, bid_amount),'
                 ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,'
-                ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE)'
-                ' PRIMARY KEY (item_id, user_id, bid_amount)')
+                ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE)')
 
 
-    #Transactions tableı sırasıyla transaction_id,item_id,buyer_id,transaction_date olacak
+
     cur.execute('CREATE TABLE IF NOT EXISTS Transactions '
                 '(item_id INT PRIMARY KEY,'
                 ' buyer_id INT NOT NULL,'
@@ -257,13 +281,11 @@ def start_database():
                 ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE,'
                 ' FOREIGN KEY (buyer_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
 
-    #VirtualCurrency tableı sırasıyla user_id,balance olacak
     cur.execute('CREATE TABLE IF NOT EXISTS VirtualCurrency '
                 '(user_id INT PRIMARY KEY,'
                 ' balance DECIMAL(10, 2) NOT NULL DEFAULT 0,'
                 ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
 
-    #Messages tableı sırasıyla message_id,sender_id,receiver_id,message_text,send_time olacak
     cur.execute('CREATE TABLE IF NOT EXISTS Messages '
                 '(message_id SERIAL PRIMARY KEY,'
                 ' sender_id INT NOT NULL,'
@@ -273,23 +295,20 @@ def start_database():
                 ' FOREIGN KEY (sender_id) REFERENCES Users(user_id) ON DELETE CASCADE,'
                 ' FOREIGN KEY (receiver_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
 
-    #Auctions tableı sırasıyla item_id,end_time,is_active olacak
     cur.execute('CREATE TABLE IF NOT EXISTS Auctions '
                 '(item_id INT PRIMARY KEY,'
                 ' end_time TIMESTAMP NOT NULL,'
                 ' is_active BOOLEAN,'
                 ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE)')
 
-    #deposit tableı sırasıyla deposit_id,user_id,deposit_amount,deposit_date olacak
-    cur.execute('CREATE TABLE IF NOT EXISTS Deposits '
+    cur.execute('CREATE TABLE IF NOT EXISTS Deposit '
                 '(deposit_id SERIAL PRIMARY KEY,'
                 ' user_id INT NOT NULL,'
                 ' deposit_amount DECIMAL(10, 2) NOT NULL,'
                 ' deposit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
                 ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
 
-    #withdrawRequest tableı sırasıyla withdraw_id,user_id,withdraw_amount,withdraw_date,req_state,trx_address olacak
-    cur.execute('CREATE TABLE IF NOT EXISTS WithdrawRequests '
+    cur.execute('CREATE TABLE IF NOT EXISTS WithdrawRequest '
                 '(withdraw_id SERIAL PRIMARY KEY,'
                 ' user_id INT NOT NULL,'
                 ' withdraw_amount DECIMAL(10, 2) NOT NULL,'
@@ -298,7 +317,6 @@ def start_database():
                 ' trx_address VARCHAR(50) NOT NULL,'
                 ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)')
 
-    #trxkeys tableı sırasıyla address,public_key,private_key olacak address userdaki trx_addresse referens olacak
     cur.execute('CREATE TABLE IF NOT EXISTS TrxKeys '
                 '(address VARCHAR(100) PRIMARY KEY,'
                 ' public_key VARCHAR(255) NOT NULL,'
@@ -309,6 +327,6 @@ def start_database():
     cur.execute('CREATE INDEX IF NOT EXISTS items_title_trgm_idx ON items USING gist (title gist_trgm_ops)')
     cur.execute('CREATE INDEX IF NOT EXISTS hash_index_on_itemidx ON items USING HASH (item_id)')
 
-    cur.commit()
+    conn.commit()
     cur.close()
     conn.close()
