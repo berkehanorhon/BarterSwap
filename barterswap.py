@@ -209,6 +209,9 @@ def add_bidding_func():
             UPDATE virtualcurrency
             SET balance = balance + last_bid.bid_amount
             WHERE user_id = last_bid.user_id;
+            UPDATE bids
+            SET refunded = TRUE
+            WHERE bids.user_id = last_bid.user_id AND bids.item_id = last_bid.item_id AND bids.bid_amount = last_bid.bid_amount;
         END IF;
 
         -- Yeni teklif verenin bakiyesini güncelle

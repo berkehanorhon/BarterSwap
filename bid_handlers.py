@@ -44,9 +44,12 @@ def add_bid(item_id):
         flash("Highest bid is already yours!", "error")
         return redirect(url_for('item_handlers.get_item', item_id=item_id))
 
+    time_diff = (end_time - now).total_seconds() * 1000
+    timeout = 4000 if time_diff < 5000 else (int(time_diff) if time_diff <= 10000 else 10000)
+
     try:
         cursor.execute('BEGIN')
-        cursor.execute('SET LOCAL statement_timeout = %s', (5000,))  # 5000 ms timeout
+        cursor.execute('SET LOCAL statement_timeout = %s', (timeout,))  # 5000 ms timeout
 
         # Call the PL/pgSQL function
         cursor.execute('SELECT add_bid_function(%s, %s, %s, %s)', (item_id, bid_amount, user_id, now))
