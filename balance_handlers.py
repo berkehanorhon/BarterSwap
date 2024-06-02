@@ -63,7 +63,7 @@ def withdraw():  # TODO Transactional withdraw implementation
                         (user_id, amount, 'Pending', trx_address))
 
                     # Update the user's balance
-                    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s FOR UPDATE',
+                    cursor.execute('UPDATE virtualcurrency SET balance = balance - %s WHERE user_id = %s',
                                    (amount, user_id))
 
                     # Commit işlemi
@@ -77,11 +77,12 @@ def withdraw():  # TODO Transactional withdraw implementation
         else:
             flash('The TRX address is not valid.', 'error')
 
-    # Cleanup işlemleri
-    cursor.close()
-    conn.close()
+    # Get the user's balance
+    cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user_id,))
+    balance = cursor.fetchone()[0]
 
-    return redirect(url_for('item_handlers.get_item', item_id=item_id))
+    conn.close()
+    return render_template('account_balance/withdraw.html', balance=balance)
 
 
 @balance_handlers.route('/account_balance', methods=['GET', 'POST'])
