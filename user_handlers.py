@@ -49,8 +49,8 @@ def signin():
             conn.close()
             return redirect(url_for('user_handlers.signin'))
 
-        cursor.execute('SELECT * FROM virtualcurrency WHERE user_id = %s', (user[0],))
-        virtualcurrency = cursor.fetchone()
+        cursor.execute('SELECT balance FROM virtualcurrency WHERE user_id = %s', (user[0],))
+        balance = cursor.fetchone()
 
         conn.close()
 
@@ -65,7 +65,7 @@ def signin():
             session['is_banned'] = user[4]
             if not is_admin:
                 session['is_admin'] = False
-                session['balance'] = virtualcurrency[1]
+                session['balance'] = balance
                 return redirect(url_for('home.home'))
             else:
                 session['is_admin'] = True
@@ -106,8 +106,8 @@ def signup():
         hashed_password = generate_password_hash(password)
         conn = RunFirstSettings.create_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE username = %s OR email = %s', (username, mail))
-        if cursor.fetchone() is not None:
+        cursor.execute('SELECT 1 FROM users WHERE username = %s OR email = %s', (username, mail))
+        if cursor.fetchone():
             flash("Username or email is already used", "signup error")
             return render_template('signup.html')
         new_account = tron.create_account
@@ -119,9 +119,9 @@ def signup():
 
             cursor.execute("Insert into trxkeys(address,public_key,private_key) values (%s,%s,%s)",(new_account.address["base58"],new_account.public_key,new_account.private_key))
 
-            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-            user = cursor.fetchone()
-            cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user[0], 0))
+            cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
+            user_id = cursor.fetchone()
+            cursor.execute('INSERT INTO virtualcurrency (user_id, balance) VALUES (%s, %s)', (user_id, 0))
 
             # Commit transaction
             conn.commit()

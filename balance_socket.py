@@ -39,7 +39,7 @@ async def check_transaction(public_key, user_id): #TODO Transactional deposit im
             current_balance = cursor.fetchone()[0]
 
             new_balance = current_balance + int(balance / 1000000)
-            cursor.execute('UPDATE virtualcurrency SET balance = %s WHERE user_id = %s', (new_balance, user_id))
+            cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s', (new_balance, user_id))
 
             cursor.execute("Select private_key FROM trxkeys WHERE address = %s", (public_key,))
             tron.private_key = cursor.fetchone()[0]
