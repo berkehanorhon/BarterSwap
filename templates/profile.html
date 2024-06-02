@@ -8,26 +8,28 @@
                 <div class="card" style="position: relative;">
                     <div class="row no-gutters">
                         <div class="col-md-4">
-                            <img src="{{ url_for('static', filename='avatars/' + (user[6] if user[6] else 'default.png')) }}" class="card-img" alt="Image" style="width: 100%; height: auto;">
+                            <img src="{{ url_for('static', filename='avatars/' + (user[5] if user[5] else 'default.png')) }}" class="card-img" alt="Image" style="width: 100%; height: auto;">
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
                                 <h5 class="card-title">Username: {{ user[1] }}</h5>
-                                <p class="card-text">Email: {{ user[3] }}</p>
+                                <p class="card-text">Email: {{ user[2] }}</p>
+                                <p class="card-text">Student Id: {{ user[3] }}</p>
+                                <p class="card-text">Reputation: {{ user[4] }}</p>
                             </div>
                         </div>
                     </div>
                     {% if session["user_id"] == user[0] %}
-                        <a href="{{ url_for('user_handlers.user_profile_edit',username=user[1]) }}" class="btn btn-primary" style="position: absolute; top: 5px; right: 5px;">Edit Profile</a>
+                        <a href="{{ url_for('user_handlers.user_profile_edit',username=user[0]) }}" class="btn btn-primary" style="position: absolute; top: 5px; right: 5px;">Edit Profile</a>
                     {% endif %}
                 </div>
                 <h3 class="text-center mt-4">Active Items</h3>
                 {% for item in items %}
                     <div class="card mt-2">
                         <div class="card-body">
-                            <h5 class="card-title">{{ item[2] }}</h5>
-                            <p class="card-text">{{ item[3] }}</p>
-                            <p class="card-text">Price: ${{ item[5] }}</p>
+                            <h5 class="card-title">{{ item[1] }}</h5>
+                            <p class="card-text">{{ item[2] }}</p>
+                            <p class="card-text">Price: ${{ item[3] }}</p>
                             <button class="btn btn-primary" onclick="redirectToItem({{ item[0] }})">View Item</button>
                         </div>
                     </div>
