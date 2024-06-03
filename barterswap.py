@@ -256,6 +256,7 @@ def start_database():
                 ' item_id INT NOT NULL,'
                 ' bid_amount DECIMAL(10, 2) NOT NULL,'
                 ' bid_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                'refunded BOOLEAN DEFAULT FALSE,'
                 ' PRIMARY KEY (item_id, user_id, bid_amount),'
                 ' FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,'
                 ' FOREIGN KEY (item_id) REFERENCES Items(item_id) ON DELETE CASCADE)')
