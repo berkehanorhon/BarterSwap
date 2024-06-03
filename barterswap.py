@@ -160,7 +160,7 @@ def add_bidding_func():
         """CREATE OR REPLACE FUNCTION add_bid_function(given_item_id INT, new_bid_amount NUMERIC, given_user_id INT, now TIMESTAMP) RETURNS VOID AS $$
     DECLARE
         last_bid RECORD;
-        cur_balance RECORD;
+        cur_balance NUMERIC;
     BEGIN
 
         PERFORM 1
@@ -180,7 +180,7 @@ def add_bidding_func():
         WHERE user_id = given_user_id
         FOR UPDATE;
         
-        IF balance < new_bid_amount THEN
+        IF cur_balance < new_bid_amount THEN
             RAISE EXCEPTION 'You do NOT have enough balance!' USING ERRCODE = 'B0005';
         END IF;
         
