@@ -21,15 +21,15 @@
                         <h5 class="card-title">{{ item[2] }}</h5>
                         <img src="{{ url_for('static', filename='images/' + (item[7] if item[7] else 'default.png')) }}" alt="Image">
                         <p class="card-text">{{ item[3] }}</p>
-                        <p class="card-text">Starting Price: ${{ item[5] }}</p>
-                        <p class="card-text">Current Price: ${{ item[6] }}</p>
+                        <p class="card-text">Starting Price: TRX {{ item[5] }}</p>
+                        <p class="card-text">Current Price: TRX {{ item[6] }}</p>
                         {% if end_time %}
                             <p class="card-text">Last Bids</p>
                         {% endif %}
                         <ul class="list-group">
                             {% for bid in bids %}
                                 <li class="list-group-item">
-                                    <p>Price: ${{ bid[0] }}</p>
+                                    <p>Price: TRX {{ bid[0] }}</p>
                                     <p>Date: <span class="bid-date" data-utc-date="{{ bid[1] }}"></span></p> <!-- Zamanı data attribute olarak ekle -->
                                     <a class="user-link" onclick="redirectToProfile('{{ bid[2] }}')">User: {{ bid[2]}}</a>
                                 </li>

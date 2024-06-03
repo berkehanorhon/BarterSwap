@@ -43,8 +43,8 @@
                     <li class="list-group-item">
                         <h3>{{ item[0] }}</h3>
                         <p>Description: {{ item[1] }}</p>
-                        <p>Current Price: ${{ item[2] }}</p>
-                        <p>Your Bid: ${{ item[3] }}</p>
+                        <p>Current Price: TRX {{ item[2] }}</p>
+                        <p>Your Bid: TRX {{ item[3] }}</p>
                         <p>Your Bidding Date: {{ item[4].strftime("%Y-%m-%d %H:%M:%S") }}</p>
                         <button class="btn btn-primary" onclick="redirectToItem({{ item[5] }})">View Item</button>
                     </li>

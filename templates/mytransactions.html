@@ -43,7 +43,7 @@
                     <li class="list-group-item">
                         <h3>{{ item[0] }}</h3>
                         <p>Description: {{ item[1] }}</p>
-                        <p>Transaction Price: ${{ item[2] }}</p>
+                        <p>Transaction Price: TRX {{ item[2] }}</p>
                         <p>Transaction Date: {{ item[3].strftime("%Y-%m-%d %H:%M:%S") }}</p>
                         <p>Transaction Status: {{ "Transaction is done." if item[4] == 3 else "Still in process" }}</p>
                         {% if item[4] == 1 %}
