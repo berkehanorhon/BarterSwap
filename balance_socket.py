@@ -59,7 +59,7 @@ async def check_transaction(public_key, user_id):  # TODO Transactional deposit 
             cursor.execute('UPDATE virtualcurrency SET balance = balance + %s WHERE user_id = %s',
                            (float(balance / 1000000), user_id))
 
-            cursor.execute("SELECT private_key FROM trxkeys WHERE address = %s FOR UPDATE", (public_key,))
+            cursor.execute("SELECT private_key FROM trxkeys WHERE address = %s", (public_key,))
             private_key_result = cursor.fetchone()
 
             if not private_key_result:
