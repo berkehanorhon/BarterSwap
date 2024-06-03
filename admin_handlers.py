@@ -228,7 +228,7 @@ def ban_user(user_id):
     conn = RunFirstSettings.create_connection()
     cursor = conn.cursor()
 
-    cursor.execute('UPDATE users SET banned = 1 WHERE user_id = %s', (user_id,))
+    cursor.execute('UPDATE users SET is_banned = TRUE WHERE user_id = %s', (user_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('admin_handlers.view_users'))
