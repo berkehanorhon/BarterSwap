@@ -160,6 +160,7 @@ def add_bidding_func():
         """CREATE OR REPLACE FUNCTION add_bid_function(given_item_id INT, new_bid_amount NUMERIC, given_user_id INT, now TIMESTAMP) RETURNS VOID AS $$
     DECLARE
         last_bid RECORD;
+        cur_balance RECORD;
     BEGIN
 
         PERFORM 1
@@ -173,11 +174,26 @@ def add_bidding_func():
         ORDER BY bid_amount DESC
         LIMIT 1
         FOR UPDATE;
-
+        
+        SELECT balance INTO cur_balance
+        FROM virtualcurrency
+        WHERE user_id = given_user_id
+        FOR UPDATE;
+        
+        IF balance < new_bid_amount THEN
+            RAISE EXCEPTION 'You do NOT have enough balance!' USING ERRCODE = 'B0005';
+        END IF;
+        
         IF last_bid IS NOT NULL THEN
             IF last_bid.refunded OR last_bid.bid_amount >= new_bid_amount THEN
                 RAISE EXCEPTION 'New bids on the item!' USING ERRCODE = 'B0001';
             END IF;
+            
+            PERFORM 1
+            FROM virtualcurrency
+            WHERE user_id = last_bid.user_id
+            FOR UPDATE;
+            
             UPDATE virtualcurrency
             SET balance = balance + last_bid.bid_amount
             WHERE user_id = last_bid.user_id;

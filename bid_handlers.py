@@ -59,8 +59,10 @@ def add_bid(item_id):
         conn.commit()
     except psycopg2.Error as e:
         conn.rollback()
-        if e.pgcode == 'P0001':
+        if e.pgcode == 'B0001':
             flash(f"New bids on the item!")
+        elif e.pgcode == 'B0005':
+            flash(f"You do NOT have enough balance to bid!", "error")
         else:
             flash(f"An error occurred: {e}", "error")
             print(e)
