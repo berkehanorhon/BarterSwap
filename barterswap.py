@@ -54,11 +54,9 @@ def dump_database():
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
     dump_file_path = f"dumps/{date_time}_file.sql"
 
-    # Neon CLI komutunu oluşturma
     dump_cmd = f"neon db dump --project-name {db_config['project_name']} --database-name {db_config['name']} --username {db_config['username']} --password {db_config['password']} --host {db_config['host']} --output-file {dump_file_path}"
 
     try:
-        # Komutu çalıştırma
         subprocess.run(dump_cmd, shell=True, check=True)
         print("Database dump successful.")
     except subprocess.CalledProcessError as e:
@@ -71,10 +69,7 @@ def process_expired_auctions():
     now = get_current_time()
     for _ in range(MAX_TRANSACTION_RETRY_COUNT):
         try:
-            # Start a new transaction
             cur.execute('BEGIN')
-
-            # SQL query to handle the entire process in the database
             cur.execute("""
                 WITH expired_auctions AS (
                 SELECT item_id
@@ -116,13 +111,11 @@ def process_expired_auctions():
             )
             SELECT count(1) FROM expired_auctions;""", (now, now))
 
-            # Commit the transaction
             conn.commit()
             print("Auctions have been processed and closed successfully!(%s)"%cur.fetchone())
-            break  # If commit was successful, break the retry loop
+            break
 
         except Exception as e:
-            # If an error occurs, rollback the transaction
             conn.rollback()
             print(f"An error occurred at auction transaction: {e}")
 
@@ -168,13 +161,12 @@ def add_bidding_func():
     DECLARE
         last_bid RECORD;
     BEGIN
-        -- İtemi kilitle
+
         PERFORM 1
         FROM items
         WHERE items.item_id = given_item_id
         FOR UPDATE;
-        
-        -- Satırı kilitle
+
         SELECT * INTO last_bid
         FROM bids
         WHERE bids.item_id = given_item_id
@@ -182,13 +174,10 @@ def add_bidding_func():
         LIMIT 1
         FOR UPDATE;
 
-        -- Eğer son teklif null değilse
         IF last_bid IS NOT NULL THEN
-            -- Eğer son teklif geri ödenmişse veya son teklif yeni teklifle aynı veya daha yüksekse hata fırlat
             IF last_bid.refunded OR last_bid.bid_amount >= new_bid_amount THEN
                 RAISE EXCEPTION 'New bids on the item!' USING ERRCODE = 'B0001';
             END IF;
-            -- Önceki teklif verenin bakiyesini güncelle
             UPDATE virtualcurrency
             SET balance = balance + last_bid.bid_amount
             WHERE user_id = last_bid.user_id;
@@ -197,17 +186,14 @@ def add_bidding_func():
             WHERE bids.user_id = last_bid.user_id AND bids.item_id = last_bid.item_id AND bids.bid_amount = last_bid.bid_amount;
         END IF;
 
-        -- Yeni teklif verenin bakiyesini güncelle
         UPDATE virtualcurrency
         SET balance = balance - new_bid_amount
         WHERE user_id = given_user_id;
 
-        -- İtemin mevcut fiyatını güncelle
         UPDATE items
         SET current_price = new_bid_amount
         WHERE items.item_id = given_item_id;
 
-        -- Yeni teklifi ekle
         INSERT INTO bids (user_id, item_id, bid_amount, bid_date, refunded)
         VALUES (given_user_id, given_item_id, new_bid_amount, now, FALSE);
     END;
