@@ -165,8 +165,9 @@ def signup():
 
             # Commit transaction
             conn.commit()
-        except Exception:
+        except Exception as e:
             # Rollback transaction in case of error
+            print(e)
             conn.rollback()
             flash("Unknown error", "signup error")
             return render_template('signup.html')
