@@ -1,0 +1,11 @@
+database:
+    host:
+    port:
+    name:
+    user:
+    password:
+jwt:
+    secret_key: ""
+
+private_hash:
+    password: ""
