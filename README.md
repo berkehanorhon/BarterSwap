@@ -58,4 +58,3 @@ private_hash:
 - Flask: The web framework used for handling requests and routing.
 - Jinja: The templating engine used for generating HTML responses.
 - PostgreSQL: The database management system used for data storage.
-- PyCharm: The IDE used for development.
