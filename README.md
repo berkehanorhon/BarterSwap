@@ -33,7 +33,7 @@ jwt:
     secret_key: "your_jwt_secret_key"
 private_hash:
     password: "your_private_hash_password"
-
+```
     
 ## Installation
 
