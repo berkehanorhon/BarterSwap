@@ -22,6 +22,7 @@ BarterSwap is an online platform that allows users to auction their items for tr
 
 The `settings.yaml` file is used to configure the application. Here is an example of how to fill it out:
 
+```yaml
 database:
     host: "your_database_host"
     port: your_database_port
